@@ -5,253 +5,186 @@ Created on Jan 10, 2014
 '''
 import sys
 import struct
-from rpmfile.errors import RPMError
-import re
-import io
-import rpmdefs
+from pprint import pprint
 
-RPM_LEAD_MAGIC_NUMBER = '\xed\xab\xee\xdb'
-RPM_HEADER_MAGIC_NUMBER = '\x8e\xad\xe8'
-HEADER_MAGIC_NUMBER = re.compile('(\x8e\xad\xe8)')
+tags = {'name': 1000
+    , 'version': 1001
+    , 'release': 1002
+    , 'serial': 1003
+    , 'summary': 1004
+    , 'description': 1005
+    , 'buildtime': 1006
+    , 'buildhost': 1007
+    , 'installtime': 1008
+    , 'size': 1009
+    , 'distribution': 1010
+    , 'vendor': 1011
+    , 'gif': 1012
+    , 'xpm': 1013
+    , 'copyright': 1014
+    , 'packager': 1015
+    , 'group': 1016
+    , 'changelog': 1017
+    , 'source': 1018
+    , 'patch': 1019
+    , 'url': 1020
+    , 'os': 1021
+    , 'arch': 1022
+    , 'prein': 1023
+    , 'postin': 1024
+    , 'preun': 1025
+    , 'postun': 1026
+    , 'filenames': 1027
+    , 'filesizes': 1028
+    , 'filestates': 1029
+    , 'filemodes': 1030
+    , 'fileuids': 1031
+    , 'filegids': 1032
+    , 'filerdevs': 1033
+    , 'filemtimes': 1034
+    , 'filemd5s': 1035
+    , 'filelinktos': 1036
+    , 'fileflags': 1037
+    , 'root': 1038
+    , 'fileusername': 1039
+    , 'filegroupname': 1040
+    , 'exclude': 1041
+    , 'exclusive': 1042
+    , 'icon': 1043
+    , 'sourcerpm': 1044
+    , 'fileverifyflags': 1045
+    , 'archivesize': 1046
+    , 'provides': 1047
+    , 'requireflags': 1048
+    , 'requirename': 1049
+    , 'requireversion': 1050
+    , 'nosource': 1051
+    , 'nopatch': 1052
+    , 'conflictflags': 1053
+    , 'conflictname': 1054
+    , 'conflictversion': 1055
+    , 'defaultprefix': 1056
+    , 'buildroot': 1057
+    , 'installprefix': 1058
+    , 'excludearch': 1059
+    , 'excludeos': 1060
+    , 'exclusivearch': 1061
+    , 'exclusiveos': 1062
+    , 'autoreqprov': 1063
+    , 'rpmversion': 1064
+    , 'triggerscripts': 1065
+    , 'triggername': 1066
+    , 'triggerversion': 1067
+    , 'triggerflags': 1068
+    , 'triggerindex': 1069
+    , 'verifyscript': 1079
+    
+    , 'basenames': 1117
+     
+    , 'archive_format': 1124 
+    , 'archive_compression': 1125 
+    , 'target': 1132 
+    
+    , 'authors':1081
+    , 'comments':1082
 
-RPMTAGS = {rpmdefs.RPMTAG_NAME: 'name',
-           rpmdefs.RPMTAG_VERSION: 'version',
-           rpmdefs.RPMTAG_RELEASE: 'release',
-           rpmdefs.RPMTAG_DESCRIPTION: 'description',
-           rpmdefs.RPMTAG_COPYRIGHT: 'copyright',
-           rpmdefs.RPMTAG_URL: 'url',
-           rpmdefs.RPMTAG_ARCH: 'arch'}
+}
 
-class Entry(object):
-    ''' RPM Header Entry
-    '''
-    def __init__(self, entry, store):
-        self.entry = entry
-        self.store = store
-
-        self.switch = { rpmdefs.RPM_DATA_TYPE_CHAR:            self.__readchar,
-                        rpmdefs.RPM_DATA_TYPE_INT8:            self.__readint8,
-                        rpmdefs.RPM_DATA_TYPE_INT16:           self.__readint16,
-                        rpmdefs.RPM_DATA_TYPE_INT32:           self.__readint32,
-                        rpmdefs.RPM_DATA_TYPE_INT64:           self.__readint64,
-                        rpmdefs.RPM_DATA_TYPE_STRING:          self.__readstring,
-                        rpmdefs.RPM_DATA_TYPE_BIN:             self.__readbin,
-                        rpmdefs.RPM_DATA_TYPE_I18NSTRING_TYPE: self.__readstring}
-
-        self.store.seek(entry[2])
-        self.value = self.switch[entry[1]]()
-        self.tag = entry[0]
-
-    def __str__(self):
-        return "(%s, %s)" % (self.tag, self.value, )
-
-    def __repr__(self):
-        return "(%s, %s)" % (self.tag, self.value, )
-
-    def __readchar(self, offset=1):
-        ''' store is a pointer to the store offset
-        where the char should be read
-        '''
-        data = self.store.read(offset)
-        fmt = '!'+str(offset)+'c'
-        value = struct.unpack(fmt, data)
-        return value
-
-    def __readint8(self, offset=1):
-        ''' int8 = 1byte
-        '''
-        return self.__readchar(offset)
-
-    def __readint16(self, offset=1):
-        ''' int16 = 2bytes
-        '''
-        data = self.store.read(offset*2)
-        fmt = '!'+str(offset)+'i'
-        value = struct.unpack(fmt, data)
-        return value
-
-    def __readint32(self, offset=1):
-        ''' int32 = 4bytes
-        '''
-        data = self.store.read(offset*4)
-        fmt = '!'+str(offset)+'i'
-        value = struct.unpack(fmt, data)
-        return value
-
-    def __readint64(self, offset=1):
-        ''' int64 = 8bytes
-        '''
-        data = self.store.read(offset*4)
-        fmt = '!'+str(offset)+'l'
-        value = struct.unpack(fmt, data)
-        return value
-
-    def __readstring(self):
-        ''' read a string entry
-        '''
-        string = ''
-        while True:
-            char = self.__readchar()
-            if char[0] == '\x00': # read until '\0'
-                break
-            string += char[0]
-        return string
-
-    def __readbin(self):
-        ''' read a binary entry
-        '''
-        if self.entry[0] == rpmdefs.RPMSIGTAG_MD5:
-            data = self.store.read(rpmdefs.MD5_SIZE)
-            value = struct.unpack('!'+rpmdefs.MD5_SIZE+'s', data)
-            return value
-        elif self.entry[0] == rpmdefs.RPMSIGTAG_PGP:
-            data = self.store.read(rpmdefs.PGP_SIZE)
-            value = struct.unpack('!'+rpmdefs.PGP_SIZE+'s', data)
-            return value
-
-class Header(object):
-    ''' RPM Header Structure
-    '''
-    def __init__(self, header, entries , store):
-        '''
-        '''
-        self.header = header
-        self.entries = entries
-        self.store = store
-        self.pentries = []
-        self.rentries = []
-
-        self.__readentries()
+rtags = {value:key for (key, value) in tags.items()}
 
 
-    def __readentry(self, entry):
-        ''' [4bytes][4bytes][4bytes][4bytes]
-               TAG    TYPE   OFFSET  COUNT
-        '''
-        entryfmt = '!llll'
-        entry = struct.unpack(entryfmt, entry)
-        if entry[0] < rpmdefs.RPMTAG_MIN_NUMBER or\
-                entry[0] > rpmdefs.RPMTAG_MAX_NUMBER:
-            return None
-        return entry
+def extract_string(offset, count, store):
+    assert count == 1
+    idx = store[offset:].index('\x00')
+    return store[offset:offset + idx]
 
-    def __readentries(self):
-        ''' read a rpm entry
-        '''
-        for entry in self.entries:
-            entry = self.__readentry(entry)
-            if entry:
-                if entry[0] in rpmdefs.RPMTAGS:
-                    self.pentries.append(entry)
+def extract_array(offset, count, store):
+    a = []
+    for _ in range(count):
+        idx = store[offset:].index('\x00')
+        value = store[offset:offset + idx]
+        a.append(value)
+        offset = offset + idx + 1
+    return a
 
-        for pentry in self.pentries:
-            entry = Entry(pentry, self.store)
-            if entry:
-                self.rentries.append(entry)
+def extract_bin(offset, count, store):
+    return store[offset:offset + count]
+    
+def extract_int32(offset, count, store):
+    values = struct.unpack('!' + 'i' * count, store[offset:offset + 4 * count])
+    if count == 1: values = values[0]
+    return values
+    
+def extract_int16(offset, count, store):
+    values = struct.unpack('!' + 'h' * count, store[offset:offset + 2 * count])
+    if count == 1: values = values[0]
+    return values
+    
+    
+ty_map = {
+          
+          3: extract_int16,
+          4: extract_int32,
+          6: extract_string,
+          7: extract_bin,
+          8: extract_array,
+          9: extract_string,
+          }
+
+def extract_data(ty, offset, count, store):
+    extract = ty_map.get(ty)
+    if extract:
+        return extract(offset, count, store)
+    else:
+        return 'could not extract %s' % ty
 
 
-def _readheader(header):
-    ''' reads the header-header section
-    [3bytes][1byte][4bytes][4bytes][4bytes]
-      MN      VER   UNUSED  IDXNUM  STSIZE
-    '''
-    headerfmt = '!3sc4sll'
-    if not len(header) == 16:
-        raise RPMError('invalid header size')
-
-    header = struct.unpack(headerfmt, header)
-    magic_num = header[0]
-    if magic_num != RPM_HEADER_MAGIC_NUMBER:
-        raise RPMError('invalid RPM header')
-    return header
-
-
-def _readheaders(fileobj, offset):
-    ''' read information headers
-    '''
-    # lets find the start of the header
-    fileobj.seek(offset)
-    start = find_magic_number(HEADER_MAGIC_NUMBER, fileobj)
-    # go back to the begining of the header
-    fileobj.seek(start)
-    header = fileobj.read(16)
-    header = _readheader(header)
+def _readheader(fileobj):
+    
+    char = fileobj.read(1)
+    while char != '\x8e':
+        char = fileobj.read(1)
+    
+    magic = '\x8e' + fileobj.read(2)
+    version = ord(fileobj.read(1))
+    
+    _ = fileobj.read(4)
+    
+    num_entries, = struct.unpack('!i', fileobj.read(4))
+    header_structure_size, = struct.unpack('!i', fileobj.read(4))
+    
+    header = struct.Struct('!iiii')
+    
     entries = []
-    _headers = []
-    for entry in range(header[3]):
-        _entry = fileobj.read(16)
-        entries.append(_entry)
-    store = io.BytesIO(fileobj.read(header[4]))
-    _headers.append(Header(header, entries, store))
-
-    _entries = {}
-    for header in _headers:
-        for entry in header.rentries:
-            key = RPMTAGS.get(entry.tag, entry.tag)
-            _entries[key] = entry.value 
-    return _entries
-
-def find_magic_number(regexp, data):
-    ''' find a magic number in a buffer
-    '''
-    string = data.read(1)
-    while True:
-        match = regexp.search(string)
-        if match:
-            return data.tell() - 3
-        byte = data.read(1)
-        if not byte:
-            return None
-        else:
-            string += byte
-
-def _readlead(fileobj):
-    ''' reads the rpm lead section
-
-        struct rpmlead {
-           unsigned char magic[4];
-           unsigned char major, minor;
-           short type;
-           short archnum;
-           char name[66];
-           short osnum;
-           short signature_type;
-           char reserved[16];
-           } ;
-    '''
-    lead_fmt = '!4sBBhh66shh16s'
-    data = fileobj.read(96)
-    value = struct.unpack(lead_fmt, data)
-
-    magic_num = value[0]
-    ptype = value[3]
-
-    if magic_num != RPM_LEAD_MAGIC_NUMBER:
-        raise RPMError('wrong magic number this is not a RPM file')
-
-    if ptype not in [0, 1]:
-        raise RPMError('wrong package type this is not a RPM file')
-
-def _read_sigheader(fileobj):
-    ''' read signature header
-
-        ATN: this will not return any usefull information
-        besides the file offset
-    '''
-    start = find_magic_number(HEADER_MAGIC_NUMBER, fileobj)
-    if not start:
-        raise RPMError('invalid RPM file, signature header not found')
-    # return the offsite after the magic number
-    return start + 3
-
+    for _ in range(num_entries):
+        entry = header.unpack(fileobj.read(header.size))
+        entries.append(entry)
+    
+    store = fileobj.read(header_structure_size)
+    store
+    
+    headers = {}
+    for tag, ty, offset, count in entries:
+        key = rtags.get(tag, tag)
+        value = extract_data(ty, offset, count, store)
+        headers[key] = value
+    return headers
+    
 def get_headers(fileobj):
-    _readlead(fileobj)
-    offset = _read_sigheader(fileobj)
-    return _readheaders(fileobj, offset)
+    lead = struct.Struct('!4sBBhh66shh16s')
+    data = fileobj.read(lead.size)
+    value = lead.unpack(data)
+
+    #Not sure what the first set of headers are for
+    _readheader(fileobj)
+    return _readheader(fileobj)
+
     
 def main():
+    
     with open(sys.argv[1]) as fileobj:
-        print get_headers(fileobj)
+        headers = get_headers(fileobj)
+        print pprint(headers)
 
 if __name__ == '__main__':
     main() 

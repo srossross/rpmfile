@@ -25,3 +25,12 @@ Tools for inspecting RPM files in python. This module is modeled after the tarfi
     
     * rpmfile.RPMFile: The RPMFile object provides an interface to a RPM archive
     * rpmfile.RPMInfo: An RPMInfo object represents one member in a RPMFile.
+
+
+## Code in this module was borrowed from:
+
+    * https://bitbucket.org/krp/cpiofile
+    * https://github.com/mjvm/pyrpm
+
+
+
