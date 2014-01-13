@@ -13,7 +13,7 @@ else:
 setup(
     name='rpmfile',
     description='Read rmp archive files',
-    version="0.1.2",
+    version="0.1.3",
     author='Sean Ross-Ross',
     author_email='srossross@gmail.com',
     url='https://github.com/srossross/rpmfile',
