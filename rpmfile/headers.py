@@ -140,13 +140,14 @@ def extract_data(ty, offset, count, store):
 
 
 def _readheader(fileobj):
-    
     char = fileobj.read(1)
     while char != '\x8e':
         char = fileobj.read(1)
-    
     magic = '\x8e' + fileobj.read(2)
+    assert magic.encode('hex') == '8eade8'
     version = ord(fileobj.read(1))
+    
+    header_start = fileobj.tell() - 4 # -4 for magic
     
     _ = fileobj.read(4)
     
@@ -168,7 +169,8 @@ def _readheader(fileobj):
         key = rtags.get(tag, tag)
         value = extract_data(ty, offset, count, store)
         headers[key] = value
-    return headers
+    header_end = fileobj.tell()
+    return (header_start, header_end), headers
     
 def get_headers(fileobj):
     lead = struct.Struct('!4sBBhh66shh16s')

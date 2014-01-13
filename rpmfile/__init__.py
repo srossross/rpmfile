@@ -76,10 +76,17 @@ class RPMFile(object):
         if mode != 'rb':
             raise NotImplementedError("currently the only supported mode is 'rb'")
         self._fileobj = fileobj or io.open(name, mode)
-        self._headers = get_headers(self._fileobj)
-        self.data_offset = self._fileobj.tell()
+        self._header_range, self._headers = get_headers(self._fileobj)
         self._ownes_fd = fileobj is not None
         
+    @property
+    def data_offset(self):
+        return self._header_range[1]
+    
+    @property
+    def header_range(self):
+        return self._header_range
+    
     @property
     def headers(self):
         'RPM headers'
