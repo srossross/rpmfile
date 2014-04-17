@@ -3,9 +3,11 @@ Created on Jan 10, 2014
 
 @author: sean
 '''
+from __future__ import print_function, unicode_literals, absolute_import
 import sys
 import struct
 from pprint import pprint
+from .errors import RPMError
 
 tags = {'name': 1000
     , 'version': 1001
@@ -78,13 +80,13 @@ tags = {'name': 1000
     , 'triggerflags': 1068
     , 'triggerindex': 1069
     , 'verifyscript': 1079
-    
+
     , 'basenames': 1117
-     
-    , 'archive_format': 1124 
-    , 'archive_compression': 1125 
-    , 'target': 1132 
-    
+
+    , 'archive_format': 1124
+    , 'archive_compression': 1125
+    , 'target': 1132
+
     , 'authors':1081
     , 'comments':1082
 
@@ -95,13 +97,13 @@ rtags = {value:key for (key, value) in tags.items()}
 
 def extract_string(offset, count, store):
     assert count == 1
-    idx = store[offset:].index('\x00')
+    idx = store[offset:].index(b'\x00')
     return store[offset:offset + idx]
 
 def extract_array(offset, count, store):
     a = []
     for _ in range(count):
-        idx = store[offset:].index('\x00')
+        idx = store[offset:].index(b'\x00')
         value = store[offset:offset + idx]
         a.append(value)
         offset = offset + idx + 1
@@ -109,20 +111,20 @@ def extract_array(offset, count, store):
 
 def extract_bin(offset, count, store):
     return store[offset:offset + count]
-    
+
 def extract_int32(offset, count, store):
-    values = struct.unpack('!' + 'i' * count, store[offset:offset + 4 * count])
+    values = struct.unpack(b'!' + b'i' * count, store[offset:offset + 4 * count])
     if count == 1: values = values[0]
     return values
-    
+
 def extract_int16(offset, count, store):
-    values = struct.unpack('!' + 'h' * count, store[offset:offset + 2 * count])
+    values = struct.unpack(b'!' + b'h' * count, store[offset:offset + 2 * count])
     if count == 1: values = values[0]
     return values
-    
-    
+
+
 ty_map = {
-          
+
           3: extract_int16,
           4: extract_int32,
           6: extract_string,
@@ -141,29 +143,34 @@ def extract_data(ty, offset, count, store):
 
 def _readheader(fileobj):
     char = fileobj.read(1)
-    while char != '\x8e':
+    while char != b'\x8e':
         char = fileobj.read(1)
-    magic = '\x8e' + fileobj.read(2)
-    assert magic.encode('hex') == '8eade8'
+
+        if char is None:
+            raise RPMError("reached end of file without finding magic char \x8e")
+
+    magic = b'\x8e' + fileobj.read(2)
+    from binascii import hexlify
+    assert hexlify(magic) == b'8eade8', hexlify(magic)
     version = ord(fileobj.read(1))
-    
-    header_start = fileobj.tell() - 4 # -4 for magic
-    
+
+    header_start = fileobj.tell() - 4  # -4 for magic
+
     _ = fileobj.read(4)
-    
-    num_entries, = struct.unpack('!i', fileobj.read(4))
-    header_structure_size, = struct.unpack('!i', fileobj.read(4))
-    
-    header = struct.Struct('!iiii')
-    
+
+    num_entries, = struct.unpack(b'!i', fileobj.read(4))
+    header_structure_size, = struct.unpack(b'!i', fileobj.read(4))
+
+    header = struct.Struct(b'!iiii')
+
     entries = []
     for _ in range(num_entries):
         entry = header.unpack(fileobj.read(header.size))
         entries.append(entry)
-    
+
     store = fileobj.read(header_structure_size)
     store
-    
+
     headers = {}
     for tag, ty, offset, count in entries:
         key = rtags.get(tag, tag)
@@ -171,22 +178,22 @@ def _readheader(fileobj):
         headers[key] = value
     header_end = fileobj.tell()
     return (header_start, header_end), headers
-    
+
 def get_headers(fileobj):
-    lead = struct.Struct('!4sBBhh66shh16s')
+    lead = struct.Struct(b'!4sBBhh66shh16s')
     data = fileobj.read(lead.size)
     value = lead.unpack(data)
 
-    #Not sure what the first set of headers are for
+    # Not sure what the first set of headers are for
     _readheader(fileobj)
     return _readheader(fileobj)
 
-    
+
 def main():
-    
+
     with open(sys.argv[1]) as fileobj:
         headers = get_headers(fileobj)
-        print pprint(headers)
+        pprint(headers)
 
 if __name__ == '__main__':
-    main() 
+    main()

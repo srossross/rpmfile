@@ -1,6 +1,6 @@
 
-
-from headers import get_headers
+from __future__ import print_function, unicode_literals, absolute_import
+from .headers import get_headers
 import sys
 import io
 import gzip
@@ -20,36 +20,36 @@ class RPMInfo(object):
     usually created internally.
     '''
     _new_coder = struct.Struct(b'8s8s8s8s8s8s8s8s8s8s8s8s8s')
-    
+
     def __init__(self, name, file_start, file_size, initial_offset, isdir):
         self.name = name
         self.file_start = file_start
         self.size = file_size
         self.initial_offset = initial_offset
         self._isdir = isdir
-        
+
     @property
     def isdir(self):
         return self._isdir
-         
-        
+
+
     def __repr__(self):
         return '<RPMMember %r>' % self.name
-    
+
     @classmethod
     def _read(cls, magic, fileobj):
         if magic == '070701':
             return cls._read_new(fileobj, magic=magic)
         else:
             raise Exception('bad magic number %r' % magic)
-    
+
     @classmethod
     def _read_new(cls, fileobj, magic=None):
-        coder = cls._new_coder 
-        
+        coder = cls._new_coder
+
         initial_offset = fileobj.tell()
         d = coder.unpack_from(fileobj.read(coder.size))
-        
+
         namesize = int(d[11], 16)
         name = fileobj.read(namesize)[:-1]
         fileobj.seek(pad(fileobj), 1)
@@ -58,9 +58,9 @@ class RPMInfo(object):
         fileobj.seek(file_size, 1)
         fileobj.seek(pad(fileobj), 1)
         nlink = int(d[4], 16)
-        isdir = nlink == 2 and file_size == 0  
+        isdir = nlink == 2 and file_size == 0
         return cls(name, file_start, file_size, initial_offset, isdir)
-    
+
 class RPMFile(object):
     '''
     Open an RPM archive `name'. `mode' must be 'r' to
@@ -72,35 +72,35 @@ class RPMFile(object):
 
     '''
     def __init__(self, name=None, mode='rb', fileobj=None):
-        
+
         if mode != 'rb':
             raise NotImplementedError("currently the only supported mode is 'rb'")
         self._fileobj = fileobj or io.open(name, mode)
         self._header_range, self._headers = get_headers(self._fileobj)
         self._ownes_fd = fileobj is not None
-        
+
     @property
     def data_offset(self):
         return self._header_range[1]
-    
+
     @property
     def header_range(self):
         return self._header_range
-    
+
     @property
     def headers(self):
         'RPM headers'
         return self._headers
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, *excinfo):
         if self._ownes_fd:
             self._fileobj.close()
-        
+
     _members = None
-    
+
     def getmembers(self):
         '''
         Return the members of the archive as a list of RPMInfo objects. The
@@ -110,21 +110,21 @@ class RPMFile(object):
             self._members = _members = []
             g = self.gzip_file
             magic = g.read(2)
-            while magic: 
+            while magic:
                 if magic == '07':
                     magic += g.read(4)
                     member = RPMInfo._read(magic, g)
-                    
+
                     if member.name == 'TRAILER!!!':
                         break
-                    
+
                     if not member.isdir:
                         _members.append(member)
-                    
+
                 magic = g.read(2)
             return _members
         return self._members
-    
+
     def getmember(self, name):
         '''
         Return an RPMInfo object for member `name'. If `name' can not be
@@ -136,9 +136,9 @@ class RPMFile(object):
         for m in members[::-1]:
             if m.name == name:
                 return m
-            
+
         raise KeyError("member %s could not be found" % name)
-        
+
     def extractfile(self, member):
         '''
         Extract a member from the archive as a file object. `member' may be
@@ -151,7 +151,7 @@ class RPMFile(object):
         return _SubFile(self.gzip_file, member.file_start, member.size)
 
     _gzip_file = None
-    
+
     @property
     def gzip_file(self):
         'Return the uncompressed raw CPIO data of the RPM archive'
@@ -159,7 +159,7 @@ class RPMFile(object):
             fileobj = _SubFile(self._fileobj, self.data_offset)
             self._gzip_file = gzip.GzipFile(fileobj=fileobj)
         return self._gzip_file
-    
+
 def open(name=None, mode='rb', fileobj=None):
     '''
     Open an RPM archive for reading. Return
@@ -168,13 +168,13 @@ def open(name=None, mode='rb', fileobj=None):
     return RPMFile(name, mode, fileobj)
 
 def main():
-    print sys.argv[1]
+    print(sys.argv[1])
     with open(sys.argv[1]) as rpm:
-        print rpm.headers
+        print(rpm.headers)
         for m in rpm.getmembers():
-            print m 
-        print 'done'
-            
+            print(m)
+        print('done')
+
 
 if __name__ == '__main__':
     main()
