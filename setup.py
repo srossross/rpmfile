@@ -7,13 +7,13 @@ from os.path import isfile
 
 if isfile('README.md'):
     long_description = open('README.md').read()
-else:  
+else:
     long_description = '???'
 
 setup(
     name='rpmfile',
     description='Read rmp archive files',
-    version="0.1.3",
+    version="0.1.4",
     author='Sean Ross-Ross',
     author_email='srossross@gmail.com',
     url='https://github.com/srossross/rpmfile',
