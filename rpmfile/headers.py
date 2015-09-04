@@ -1,3 +1,4 @@
+import rpmfile
 '''
 Created on Jan 10, 2014
 
@@ -9,7 +10,8 @@ import struct
 from pprint import pprint
 from .errors import RPMError
 
-tags = {'name': 1000
+tags = {'signature': 267
+    , 'name': 1000
     , 'version': 1001
     , 'release': 1002
     , 'serial': 1003
@@ -185,8 +187,14 @@ def get_headers(fileobj):
     value = lead.unpack(data)
 
     # Not sure what the first set of headers are for
-    _readheader(fileobj)
-    return _readheader(fileobj)
+    first_range, first_headers = _readheader(fileobj)
+    second_range, second_headers = _readheader(fileobj)
+
+    first_headers.update(second_headers)
+    #for key, val in first_headers:
+    #    if key not in second_headers:
+    #        second_headers[key] = val
+    return first_headers
 
 
 def main():
