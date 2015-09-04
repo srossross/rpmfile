@@ -10,6 +10,7 @@ from pprint import pprint
 from .errors import RPMError
 
 tags = {'signature': 267
+    , 'md5': 269
     , 'name': 1000
     , 'version': 1001
     , 'release': 1002
@@ -190,11 +191,8 @@ def get_headers(fileobj):
     second_range, second_headers = _readheader(fileobj)
 
     first_headers.update(second_headers)
-    #for key, val in first_headers:
-    #    if key not in second_headers:
-    #        second_headers[key] = val
-    return first_headers
 
+    return second_range, first_headers
 
 def main():
 
