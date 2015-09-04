@@ -1,4 +1,3 @@
-import rpmfile
 '''
 Created on Jan 10, 2014
 
