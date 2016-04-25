@@ -5,6 +5,7 @@ import sys
 import io
 import gzip
 import struct
+from backports import lzma
 from rpmfile import cpiofile
 from functools import wraps
 from rpmfile.io_extra import _SubFile
@@ -15,7 +16,7 @@ class RPMInfo(object):
     '''
     Informational class which holds the details about an
     archive member given by an RPM entry block.
-    RPMInfo objects are returned by RPMFile.getmember() and 
+    RPMInfo objects are returned by RPMFile.getmember() and
     RPMFile.getmembers() and are
     usually created internally.
     '''
@@ -65,7 +66,7 @@ class RPMFile(object):
     '''
     Open an RPM archive `name'. `mode' must be 'r' to
     read from an existing archive.
-    
+
     If `fileobj' is given, it is used for reading or writing data. If it
     can be determined, `mode' is overridden by `fileobj's mode.
     `fileobj' is not closed, when TarFile is closed.
@@ -157,7 +158,10 @@ class RPMFile(object):
         'Return the uncompressed raw CPIO data of the RPM archive'
         if self._gzip_file is None:
             fileobj = _SubFile(self._fileobj, self.data_offset)
-            self._gzip_file = gzip.GzipFile(fileobj=fileobj)
+            if self.headers['archive_compression'] == 'xz':
+                self._gzip_file = lzma.LZMAFile(fileobj)
+            else:
+                self._gzip_file = gzip.GzipFile(fileobj=fileobj)
         return self._gzip_file
 
 def open(name=None, mode='rb', fileobj=None):
