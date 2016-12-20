@@ -109,7 +109,7 @@ class RPMFile(object):
         '''
         if self._members is None:
             self._members = _members = []
-            g = self.gzip_file
+            g = self.data_file
             magic = g.read(2)
             while magic:
                 if magic == '07':
@@ -149,7 +149,7 @@ class RPMFile(object):
         '''
         if not isinstance(member, RPMInfo):
             member = self.getmember(member)
-        return _SubFile(self.gzip_file, member.file_start, member.size)
+        return _SubFile(self.data_file, member.file_start, member.size)
 
     _gzip_file = None
 
