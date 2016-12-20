@@ -4,6 +4,7 @@ from .headers import get_headers
 import sys
 import io
 import gzip
+import lzma
 import struct
 from rpmfile import cpiofile
 from functools import wraps
@@ -159,6 +160,35 @@ class RPMFile(object):
             fileobj = _SubFile(self._fileobj, self.data_offset)
             self._gzip_file = gzip.GzipFile(fileobj=fileobj)
         return self._gzip_file
+
+    _data_file = None
+
+    @property
+    def data_file(self):
+        """Return the uncompressed raw CPIO data of the RPM archive."""
+
+        GZIP_MAGIC = b'\x1F\x8B'
+        XZ_MAGIC = b'\xFD\x37\x7A\x58\x5A\x00'
+
+        if self._data_file is None:
+            fileobj = _SubFile(self._fileobj, self.data_offset)
+
+            # check if GZip file
+            magic = fileobj.read(len(GZIP_MAGIC))
+            if GZIP_MAGIC == magic:
+                fileobj.seek(0)
+                self._data_file = gzip.GzipFile(fileobj=fileobj)
+                return self._data_file
+
+            # check if LZMA (XZ) file
+            fileobj.seek(0)
+            magic = fileobj.read(len(XZ_MAGIC))
+            if XZ_MAGIC == magic:
+                fileobj.seek(0)
+                self._data_file = lzma.LZMAFile(fileobj)
+                return self._data_file
+
+        return self._data_file
 
 def open(name=None, mode='rb', fileobj=None):
     '''
