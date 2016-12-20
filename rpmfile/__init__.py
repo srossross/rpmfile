@@ -109,7 +109,7 @@ class RPMFile(object):
         '''
         if self._members is None:
             self._members = _members = []
-            g = self.gzip_file
+            g = self.data_file
             magic = g.read(2)
             while magic:
                 if magic == b'07':
@@ -149,17 +149,7 @@ class RPMFile(object):
         '''
         if not isinstance(member, RPMInfo):
             member = self.getmember(member)
-        return _SubFile(self.gzip_file, member.file_start, member.size)
-
-    _gzip_file = None
-
-    @property
-    def gzip_file(self):
-        'Return the uncompressed raw CPIO data of the RPM archive'
-        if self._gzip_file is None:
-            fileobj = _SubFile(self._fileobj, self.data_offset)
-            self._gzip_file = gzip.GzipFile(fileobj=fileobj)
-        return self._gzip_file
+        return _SubFile(self.data_file, member.file_start, member.size)
 
     _data_file = None
 
