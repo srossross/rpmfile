@@ -151,16 +151,6 @@ class RPMFile(object):
             member = self.getmember(member)
         return _SubFile(self.data_file, member.file_start, member.size)
 
-    _gzip_file = None
-
-    @property
-    def gzip_file(self):
-        'Return the uncompressed raw CPIO data of the RPM archive'
-        if self._gzip_file is None:
-            fileobj = _SubFile(self._fileobj, self.data_offset)
-            self._gzip_file = gzip.GzipFile(fileobj=fileobj)
-        return self._gzip_file
-
     _data_file = None
 
     @property
