@@ -313,6 +313,8 @@ rtags = dict([(value, key) for (key, value) in tags.items()])
 
 
 def extract_string(offset, count, store):
+    if count > 1:
+        return extract_array(offset, count, store)
     assert count == 1
     idx = store[offset:].index(b"\x00")
     return store[offset : offset + idx]
