@@ -6,18 +6,20 @@ from setuptools import setup, find_packages
 from os.path import isfile
 
 if isfile('README.md'):
-    long_description = open('README.md').read()
+    with open('README.md') as readme:
+        long_description = readme.read()
 else:
     long_description = '???'
 
 setup(
     name='rpmfile',
-    description='Read rmp archive files',
-    version="0.1.4",
+    description='Read rpm archive files',
+    version="0.1.5",
     author='Sean Ross-Ross',
     author_email='srossross@gmail.com',
     url='https://github.com/srossross/rpmfile',
     license='MIT',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(),
 )
