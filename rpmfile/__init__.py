@@ -4,13 +4,19 @@ from .headers import get_headers
 import sys
 import io
 import gzip
-import lzma
+try:
+    import lzma
+except ImportError:
+    pass
 import struct
 from rpmfile import cpiofile
 from functools import wraps
 from rpmfile.io_extra import _SubFile
 
 pad = lambda fileobj: (4 - (fileobj.tell() % 4)) % 4
+
+class NoLZMAModuleError(NotImplementedError):
+    pass
 
 class RPMInfo(object):
     '''
@@ -161,6 +167,8 @@ class RPMFile(object):
             fileobj = _SubFile(self._fileobj, self.data_offset)
 
             if self.headers["archive_compression"] == b"xz":
+                if not getattr(sys.modules[__name__], 'lzma', False):
+                    raise NoLZMAModuleError('lzma module not present')
                 self._data_file = lzma.LZMAFile(fileobj)
             else:
                 self._data_file = gzip.GzipFile(fileobj=fileobj)

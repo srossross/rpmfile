@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import hashlib
 import tempfile
@@ -15,14 +16,16 @@ def download(url, rpmname):
     def _downloader(func):
         @wraps(func)
         def wrapper(*args, **kwds):
+            args = list(args)
             rpmpath = os.path.join(args[0].tempdir, rpmname)
-            with urlopen(url) as download, \
-                    open(rpmpath, 'wb') as target_file:
+            args.append(rpmpath)
+            download = urlopen(url)
+            with open(rpmpath, 'wb') as target_file:
                 target_file.write(download.read())
-            return func(*args, rpmpath, **kwds)
+            download.close()
+            return func(*args, **kwds)
         return wrapper
     return _downloader
-
 
 class TempDirTest(unittest.TestCase):
 
@@ -37,6 +40,9 @@ class TempDirTest(unittest.TestCase):
         shutil.rmtree(cls.tempdir)
         os.chdir(cls.prevdir)
 
+    @unittest.skipUnless(sys.version_info.major >= 3 \
+                            and sys.version_info.minor >= 3,
+                         'Need lzma module')
     @download('https://download.clearlinux.org/releases/10540/clear/x86_64/os/Packages/sudo-setuid-1.8.17p1-34.x86_64.rpm', 'sudo.rpm')
     def test_lzma_sudo(self, rpmpath):
         with rpmfile.open(rpmpath) as rpm:
