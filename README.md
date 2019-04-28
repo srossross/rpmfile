@@ -1,7 +1,7 @@
 # rpmfile
 
 Tools for inspecting RPM files in python. This module is modeled after the
-tarfile module.
+[tarfile](https://docs.python.org/3/library/tarfile.html) module.
 
 ## Example
 
