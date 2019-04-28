@@ -7,8 +7,9 @@ import unittest
 
 import rpmfile
 import io
-class Test(unittest.TestCase):
 
+
+class Test(unittest.TestCase):
 
     def test_seek(self):
 
@@ -43,8 +44,6 @@ class Test(unittest.TestCase):
 
         sub.seek(0)
         self.assertEqual(sub.read(10), b'llo ')
-
-
 
 
 if __name__ == "__main__":

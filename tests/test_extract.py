@@ -12,6 +12,7 @@ except ImportError:
 
 import rpmfile
 
+
 def download(url, rpmname):
     def _downloader(func):
         @wraps(func)
@@ -27,6 +28,13 @@ def download(url, rpmname):
         return wrapper
     return _downloader
 
+
+sudo_setuid_rpm = (
+    'https://download.clearlinux.org/releases/'
+    '10540/clear/x86_64/os/Packages/'
+    'sudo-setuid-1.8.17p1-34.x86_64.rpm')
+
+
 class TempDirTest(unittest.TestCase):
 
     @classmethod
@@ -40,10 +48,8 @@ class TempDirTest(unittest.TestCase):
         shutil.rmtree(cls.tempdir)
         os.chdir(cls.prevdir)
 
-    @unittest.skipUnless(sys.version_info.major >= 3 \
-                            and sys.version_info.minor >= 3,
-                         'Need lzma module')
-    @download('https://download.clearlinux.org/releases/10540/clear/x86_64/os/Packages/sudo-setuid-1.8.17p1-34.x86_64.rpm', 'sudo.rpm')
+    @unittest.skipUnless(sys.version_info.major >= 3 and sys.version_info.minor >= 3, 'Need lzma module')
+    @download(sudo_setuid_rpm, 'sudo.rpm')
     def test_lzma_sudo(self, rpmpath):
         with rpmfile.open(rpmpath) as rpm:
 

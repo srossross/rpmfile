@@ -1,28 +1,38 @@
+'''
+RPM file module
+
+:object RPMFile:
+:function open:
+'''
 
 from __future__ import print_function, unicode_literals, absolute_import
-from .headers import get_headers
 import sys
 import io
 import gzip
+import struct
 try:
     import lzma
 except ImportError:
     pass
-import struct
-from rpmfile import cpiofile
-from functools import wraps
-from rpmfile.io_extra import _SubFile
 
-pad = lambda fileobj: (4 - (fileobj.tell() % 4)) % 4
+from .io_extra import _SubFile
+from .headers import get_headers
+
+
+def pad(fileobj):
+    'align fileobj pointer'
+    return (4 - (fileobj.tell() % 4)) % 4
+
 
 class NoLZMAModuleError(NotImplementedError):
-    pass
+    'LZMA not installed with python'
+
 
 class RPMInfo(object):
     '''
     Informational class which holds the details about an
     archive member given by an RPM entry block.
-    RPMInfo objects are returned by RPMFile.getmember() and 
+    RPMInfo objects are returned by RPMFile.getmember() and
     RPMFile.getmembers() and are
     usually created internally.
     '''
@@ -38,7 +48,6 @@ class RPMInfo(object):
     @property
     def isdir(self):
         return self._isdir
-
 
     def __repr__(self):
         return '<RPMMember %r>' % self.name
@@ -68,16 +77,18 @@ class RPMInfo(object):
         isdir = nlink == 2 and file_size == 0
         return cls(name, file_start, file_size, initial_offset, isdir)
 
+
 class RPMFile(object):
     '''
     Open an RPM archive `name'. `mode' must be 'r' to
     read from an existing archive.
-    
+
     If `fileobj' is given, it is used for reading or writing data. If it
     can be determined, `mode' is overridden by `fileobj's mode.
     `fileobj' is not closed, when TarFile is closed.
 
     '''
+
     def __init__(self, name=None, mode='rb', fileobj=None):
 
         if mode != 'rb':
@@ -175,12 +186,14 @@ class RPMFile(object):
 
         return self._data_file
 
+
 def open(name=None, mode='rb', fileobj=None):
     '''
     Open an RPM archive for reading. Return
     an appropriate RPMFile class.
     '''
     return RPMFile(name, mode, fileobj)
+
 
 def main():
     print(sys.argv[1])

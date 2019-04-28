@@ -29,7 +29,7 @@ __all__ = [
     'InvalidFileFormatNull',
     'is_cpiofile',
     'valid_magic',
-    ]
+]
 
 import abc
 import io
@@ -37,34 +37,42 @@ import mmap
 import os
 import struct
 
+
 class CpioError(Exception):
     """Base class for CpioFile exceptions"""
     pass
+
 
 class CheckSumError(CpioError):
     """Exception indicating a check sum error"""
     pass
 
+
 class InvalidFileFormat(CpioError):
     """Exception indicating a file format error"""
     pass
+
 
 class InvalidFileFormatNull(InvalidFileFormat):
     """Exception indicating a null file"""
     pass
 
+
 class HeaderError(CpioError):
     """Exception indicating a header error"""
     pass
+
 
 def valid_magic(block):
     """predicate indicating whether *block* includes a valid magic number"""
     return CpioMember.valid_magic(block)
 
+
 def is_cpiofile(name):
     """predicate indicating whether *name* is a valid cpiofile"""
     with io.open(name, 'rb') as fff:
         return valid_magic(fff.read(16))
+
 
 class StructBase(object):
     """
@@ -140,6 +148,7 @@ class StructBase(object):
         """
         return self == other
 
+
 class CpioFile(StructBase):
     """Class representing an entire cpio file"""
 
@@ -205,9 +214,7 @@ class CpioFile(StructBase):
             try:
                 mymap = mmap.mmap(fileobj.fileno(), 0,
                                   mmap.MAP_SHARED, mmap.PROT_READ)
-
-            # pylint: disable=W0702
-            except:
+            except Exception:
                 mymap = 0
                 block = fileobj.read()
 
@@ -218,9 +225,9 @@ class CpioFile(StructBase):
             assert False
 
         return self._open(name=name,
-                         fileobj=fileobj,
-                         mymap=mymap,
-                         block=block)
+                          fileobj=fileobj,
+                          mymap=mymap,
+                          block=block)
 
     def close(self):
         """noop - here for completeness"""
@@ -259,6 +266,7 @@ class CpioFile(StructBase):
 
     def __eq__(self, other):
         raise NotImplementedError
+
 
 class CpioMember(StructBase):
     """class representing a member of a cpio archive"""
@@ -346,7 +354,7 @@ class CpioMember(StructBase):
                              self.ino, self.mode, self.uid, self.gid,
                              self.nlink, rdev, mtimehigh, mtimelow,
                              namesize, filesizehigh, filesizelow)
-        
+
         namestart = offset + self.coder.size
         datastart = namestart + namesize + 1
 
@@ -366,15 +374,13 @@ class CpioMember(StructBase):
 
     @property
     def size(self):
-        return (self.coder.size
-                + len(self.name) + 1
-                + self.filesize)
+        return (self.coder.size + len(self.name) + 1 + self.filesize)
 
     def __repr__(self):
-        return (b'<{0}@{1}: coder={2}, name=\'{3}\', magic=\'{4}\''
-                + ', devmajor={5}, devminor={6}, ino={7}, mode={8}'
-                + ', uid={9}, gid={10}, nlink={11}, rdevmajor={12}'
-                + ', rdevmino={13}, mtime={14}, filesize={15}>'
+        return ('<{0}@{1}: coder={2}, name=\'{3}\', magic=\'{4}\''
+                ', devmajor={5}, devminor={6}, ino={7}, mode={8}'
+                ', uid={9}, gid={10}, nlink={11}, rdevmajor={12}'
+                ', rdevmino={13}, mtime={14}, filesize={15}>'
                 .format(self.__class__.__name__, hex(id(self)), self.coder,
                         self.name, self.magic, self.devmajor, self.devminor,
                         self.ino, self.mode, self.uid, self.gid, self.nlink,
@@ -399,6 +405,7 @@ class CpioMember(StructBase):
 
     close_enough = __eq__
 
+
 class CpioMemberBin(CpioMember):
     """intermediate class indicating binary members - for subclassing only"""
 
@@ -419,15 +426,18 @@ class CpioMemberBin(CpioMember):
 
         return retval
 
+
 class CpioMember32b(CpioMemberBin):
     """
     .. todo:: need to pad after name and after content for old binary.
     """
     coder = struct.Struct(b'>2sHHHHHHHHHHHH')
 
+
 class CpioMember32l(CpioMemberBin):
     """class representing a 32bit little endian binary member"""
     coder = struct.Struct(b'<2sHHHHHHHHHHHH')
+
 
 class CpioMemberODC(CpioMember):
     """class representing an ODC member"""
@@ -480,7 +490,7 @@ class CpioMemberODC(CpioMember):
                              ino, mode, uid, gid,
                              nlink, rdev, mtime, namesize,
                              filesize)
-        
+
         namesize = len(self.name) + 1
 
         namestart = offset + self.coder.size
@@ -491,6 +501,7 @@ class CpioMemberODC(CpioMember):
         block[datastart:datastart + self.filesize] = self.content
 
         return self
+
 
 class CpioMemberNew(CpioMember):
     """class representing a new member"""
@@ -531,8 +542,8 @@ class CpioMemberNew(CpioMember):
         dataend = datastart + self.filesize
 
         self.name = block[namestart:nameend - 1]  # drop the null
-        print( "name", namesize, self.name) 
-        print( 'pad', ((4 - (nameend % 4)) % 4)  )# pad
+        print("name", namesize, self.name)
+        print('pad', ((4 - (nameend % 4)) % 4))  # pad
         self.content = block[datastart:dataend]
 
         if check != self._checksum(self.content, 0, self.filesize):
@@ -550,7 +561,7 @@ class CpioMemberNew(CpioMember):
             str(self.devminor), str(self.rdevmajor),
             str(self.rdevminor), str(namesize),
             self._checksum(self.content, 0, self.filesize))
-        
+
         namestart = offset + self.coder.size
         nameend = namestart + namesize
         datastart = nameend + ((4 - (nameend % 4)) % 4)  # pad
@@ -578,6 +589,7 @@ class CpioMemberNew(CpioMember):
         retval += ((4 - (retval % 4)) % 4)
         return retval
 
+
 class CpioMemberCRC(CpioMemberNew):
     """class representing a cpio archive member with a CRC"""
     @staticmethod
@@ -589,12 +601,11 @@ class CpioMemberCRC(CpioMemberNew):
 
         return csum & 0xffffffff
 
+
 __magicmap__ = {
     b'\x71\xc7': CpioMember32b,
     b'\xc7\x71': CpioMember32l,
     b'070707': CpioMemberODC,
     b'070701': CpioMemberNew,
     b'070702': CpioMemberCRC,
-    }
-
-
+}
