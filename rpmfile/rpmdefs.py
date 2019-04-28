@@ -4,7 +4,7 @@
 '''
 rpm definitions
 
-$Id$
+Mario Morgado (BSD) https://github.com/mjvm/pyrpm
 '''
 __revision__ = '$Rev$'[6:-2]
 

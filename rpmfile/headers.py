@@ -103,13 +103,7 @@ def extract_string(offset, count, store):
     return store[offset:offset + idx]
 
 def extract_array(offset, count, store):
-    a = []
-    for _ in range(count):
-        idx = store[offset:].index(b'\x00')
-        value = store[offset:offset + idx]
-        a.append(value)
-        offset = offset + idx + 1
-    return a
+    return store[offset:].split(b'\x00', count)[:-1]
 
 def extract_bin(offset, count, store):
     return store[offset:offset + count]
@@ -148,7 +142,7 @@ def _readheader(fileobj):
     while char != b'\x8e':
         char = fileobj.read(1)
 
-        if char is None:
+        if char is None or char == '':
             raise RPMError("reached end of file without finding magic char \x8e")
 
     magic = b'\x8e' + fileobj.read(2)

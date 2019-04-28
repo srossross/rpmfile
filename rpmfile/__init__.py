@@ -4,12 +4,19 @@ from .headers import get_headers
 import sys
 import io
 import gzip
+try:
+    import lzma
+except ImportError:
+    pass
 import struct
 from rpmfile import cpiofile
 from functools import wraps
 from rpmfile.io_extra import _SubFile
 
 pad = lambda fileobj: (4 - (fileobj.tell() % 4)) % 4
+
+class NoLZMAModuleError(NotImplementedError):
+    pass
 
 class RPMInfo(object):
     '''
@@ -38,7 +45,7 @@ class RPMInfo(object):
 
     @classmethod
     def _read(cls, magic, fileobj):
-        if magic == '070701':
+        if magic == b'070701':
             return cls._read_new(fileobj, magic=magic)
         else:
             raise Exception('bad magic number %r' % magic)
@@ -51,7 +58,7 @@ class RPMInfo(object):
         d = coder.unpack_from(fileobj.read(coder.size))
 
         namesize = int(d[11], 16)
-        name = fileobj.read(namesize)[:-1]
+        name = fileobj.read(namesize)[:-1].decode('utf-8')
         fileobj.seek(pad(fileobj), 1)
         file_start = fileobj.tell()
         file_size = int(d[6], 16)
@@ -108,10 +115,10 @@ class RPMFile(object):
         '''
         if self._members is None:
             self._members = _members = []
-            g = self.gzip_file
+            g = self.data_file
             magic = g.read(2)
             while magic:
-                if magic == '07':
+                if magic == b'07':
                     magic += g.read(4)
                     member = RPMInfo._read(magic, g)
 
@@ -148,17 +155,25 @@ class RPMFile(object):
         '''
         if not isinstance(member, RPMInfo):
             member = self.getmember(member)
-        return _SubFile(self.gzip_file, member.file_start, member.size)
+        return _SubFile(self.data_file, member.file_start, member.size)
 
-    _gzip_file = None
+    _data_file = None
 
     @property
-    def gzip_file(self):
-        'Return the uncompressed raw CPIO data of the RPM archive'
-        if self._gzip_file is None:
+    def data_file(self):
+        """Return the uncompressed raw CPIO data of the RPM archive."""
+
+        if self._data_file is None:
             fileobj = _SubFile(self._fileobj, self.data_offset)
-            self._gzip_file = gzip.GzipFile(fileobj=fileobj)
-        return self._gzip_file
+
+            if self.headers["archive_compression"] == b"xz":
+                if not getattr(sys.modules[__name__], 'lzma', False):
+                    raise NoLZMAModuleError('lzma module not present')
+                self._data_file = lzma.LZMAFile(fileobj)
+            else:
+                self._data_file = gzip.GzipFile(fileobj=fileobj)
+
+        return self._data_file
 
 def open(name=None, mode='rb', fileobj=None):
     '''
