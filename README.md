@@ -1,5 +1,7 @@
 # rpmfile
 
+[![Build Status](https://travis-ci.org/srossross/rpmfile.svg?branch=master)](https://travis-ci.org/srossross/rpmfile)
+
 Tools for inspecting RPM files in python. This module is modeled after the
 [tarfile](https://docs.python.org/3/library/tarfile.html) module.
 
