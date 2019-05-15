@@ -84,7 +84,7 @@ class RPMFile(object):
             raise NotImplementedError("currently the only supported mode is 'rb'")
         self._fileobj = fileobj or io.open(name, mode)
         self._header_range, self._headers = get_headers(self._fileobj)
-        self._ownes_fd = fileobj is not None
+        self._ownes_fd = fileobj is None
 
     @property
     def data_offset(self):

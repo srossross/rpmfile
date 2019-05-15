@@ -58,3 +58,23 @@ class TempDirTest(unittest.TestCase):
 
             calculated = hashlib.md5(fd.read()).hexdigest()
             self.assertEqual(calculated, 'a208f3d9170ecfa69a0f4ccc78d2f8f6')
+
+
+    @download('https://download.fedoraproject.org/pub/fedora/linux/releases/30/Everything/source/tree/Packages/r/rpm-4.14.2.1-4.fc30.1.src.rpm', 'sample.rpm')
+    def test_autoclose(self, rpmpath):
+        """Test that RPMFile.open context manager properly closes rpm file"""
+
+        rpm_ref = None
+        with rpmfile.open(rpmpath) as rpm:
+            rpm_ref = rpm
+
+            # Inspect the RPM headers
+            self.assertIn('name', rpm.headers.keys())
+            self.assertEqual(rpm.headers.get('arch', 'noarch'), b'x86_64')
+
+            members = list(rpm.getmembers())
+            self.assertEqual(len(members), 13)
+
+        # Test that RPMFile owned file descriptor and that underlying file is really closed
+        self.assertTrue(rpm_ref._fileobj.closed)
+        self.assertTrue(rpm_ref._ownes_fd)
