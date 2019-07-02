@@ -142,7 +142,7 @@ def _readheader(fileobj):
     while char != b'\x8e':
         char = fileobj.read(1)
 
-        if char is None or char == '':
+        if char is None or char == b'':
             raise RPMError("reached end of file without finding magic char \x8e")
 
     magic = b'\x8e' + fileobj.read(2)
