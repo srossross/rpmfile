@@ -91,11 +91,11 @@ tags = {'signature': 267
 
     , 'authors':1081
     , 'comments':1082
+    , 'obsoletes': 1090
 
 }
 
-rtags = {value:key for (key, value) in tags.items()}
-
+rtags = dict([(key, value) for (key, value) in tags.items()])
 
 def extract_string(offset, count, store):
     assert count == 1
