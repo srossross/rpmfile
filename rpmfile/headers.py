@@ -91,7 +91,7 @@ tags = {'signature': 267
 
     , 'authors':1081
     , 'comments':1082
-    , 'obsoletes': 1090
+    , 'obsoletes':1090
 
 }
 
