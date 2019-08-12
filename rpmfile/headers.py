@@ -95,7 +95,7 @@ tags = {'signature': 267
 
 }
 
-rtags = dict([(key, value) for (key, value) in tags.items()])
+rtags = dict([(value, key) for (key, value) in tags.items()])
 
 def extract_string(offset, count, store):
     assert count == 1
