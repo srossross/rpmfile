@@ -34,6 +34,15 @@ class _SubFile(object):
             self._size = size
         self._pos = 0
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *excinfo):
+        pass
+
+    def close(self):
+        pass
+
     def __getattr__(self, attr):
         return getattr(self._fileobj, attr)
 
