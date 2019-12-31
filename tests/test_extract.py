@@ -1,5 +1,6 @@
 import os
 import sys
+import gzip
 import shutil
 import hashlib
 import tempfile
@@ -18,11 +19,19 @@ def download(url, rpmname):
         def wrapper(*args, **kwds):
             args = list(args)
             rpmpath = os.path.join(args[0].tempdir, rpmname)
+            gztemp = os.path.join(args[0].tempdir, "temp.gz")
             args.append(rpmpath)
             download = urlopen(url)
+            if url[::-1].startswith('.gz'[::-1]):
+                with open(gztemp, 'wb') as gztemp_file:
+                    gztemp_file.write(download.read())
+                download.close()
+                download = gzip.open(gztemp, 'rb')
             with open(rpmpath, 'wb') as target_file:
                 target_file.write(download.read())
             download.close()
+            if url[::-1].startswith('.gz'[::-1]):
+                os.unlink(gztemp)
             return func(*args, **kwds)
         return wrapper
     return _downloader
@@ -78,3 +87,8 @@ class TempDirTest(unittest.TestCase):
         # Test that RPMFile owned file descriptor and that underlying file is really closed
         self.assertTrue(rpm_ref._fileobj.closed)
         self.assertTrue(rpm_ref._ownes_fd)
+
+    @download('https://github.com/srossross/rpmfile/files/3150016/gopacket-license.noarch.rpm.gz', 'gopacket.rpm')
+    def test_issue_19(self, rpmpath):
+        with rpmfile.open(rpmpath) as rpm:
+            self.assertEqual(len(list(rpm.getmembers())), 2)
