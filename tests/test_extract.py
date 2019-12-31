@@ -63,10 +63,9 @@ class TempDirTest(unittest.TestCase):
             members = list(rpm.getmembers())
             self.assertEqual(len(members), 1)
 
-            fd = rpm.extractfile('./usr/bin/sudo')
-
-            calculated = hashlib.md5(fd.read()).hexdigest()
-            self.assertEqual(calculated, 'a208f3d9170ecfa69a0f4ccc78d2f8f6')
+            with rpm.extractfile('./usr/bin/sudo') as fd:
+                calculated = hashlib.md5(fd.read()).hexdigest()
+                self.assertEqual(calculated, 'a208f3d9170ecfa69a0f4ccc78d2f8f6')
 
 
     @download('https://download.fedoraproject.org/pub/fedora/linux/releases/30/Everything/source/tree/Packages/r/rpm-4.14.2.1-4.fc30.1.src.rpm', 'sample.rpm')
@@ -83,6 +82,18 @@ class TempDirTest(unittest.TestCase):
 
             members = list(rpm.getmembers())
             self.assertEqual(len(members), 13)
+
+            # Test that subfile does not close parent file by calling close and
+            # then extractfile again
+            fd = rpm.extractfile('rpm-4.13.90-ldflags.patch')
+            calculated = hashlib.md5(fd.read()).hexdigest()
+            self.assertEqual(calculated, '4841553ad9276fffd83df33643839a57')
+            fd.close()
+
+            fd = rpm.extractfile('rpm.spec')
+            calculated = hashlib.md5(fd.read()).hexdigest()
+            self.assertEqual(calculated, 'ed96e23cf7f8dd17c459e0dd4618888c')
+            fd.close()
 
         # Test that RPMFile owned file descriptor and that underlying file is really closed
         self.assertTrue(rpm_ref._fileobj.closed)
