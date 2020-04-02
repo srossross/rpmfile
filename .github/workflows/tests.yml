@@ -16,6 +16,15 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Dependencies
+      run: |
+        pip install -U pip
+        pip install dffml==0.3.5
     - name: Test
       run: |
         python setup.py test
+    - name: Release
+      run: |
+        if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
+          dffml service dev release .
+        fi
