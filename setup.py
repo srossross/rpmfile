@@ -14,7 +14,7 @@ else:
 setup(
     name='rpmfile',
     description='Read rpm archive files',
-    version="0.1.6",
+    version="1.0.1",
     author='Sean Ross-Ross',
     author_email='srossross@gmail.com',
     url='https://github.com/srossross/rpmfile',
