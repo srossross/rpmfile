@@ -17,19 +17,19 @@ archives.
 
 from __future__ import unicode_literals, print_function
 
-__docformat__ = 'restructuredtext en'
+__docformat__ = "restructuredtext en"
 
 __all__ = [
-    'CheckSumError',
-    'CpioError',
-    'CpioFile',
-    'CpioMember',
-    'HeaderError',
-    'InvalidFileFormat',
-    'InvalidFileFormatNull',
-    'is_cpiofile',
-    'valid_magic',
-    ]
+    "CheckSumError",
+    "CpioError",
+    "CpioFile",
+    "CpioMember",
+    "HeaderError",
+    "InvalidFileFormat",
+    "InvalidFileFormatNull",
+    "is_cpiofile",
+    "valid_magic",
+]
 
 import abc
 import io
@@ -37,34 +37,47 @@ import mmap
 import os
 import struct
 
+
 class CpioError(Exception):
     """Base class for CpioFile exceptions"""
+
     pass
+
 
 class CheckSumError(CpioError):
     """Exception indicating a check sum error"""
+
     pass
+
 
 class InvalidFileFormat(CpioError):
     """Exception indicating a file format error"""
+
     pass
+
 
 class InvalidFileFormatNull(InvalidFileFormat):
     """Exception indicating a null file"""
+
     pass
+
 
 class HeaderError(CpioError):
     """Exception indicating a header error"""
+
     pass
+
 
 def valid_magic(block):
     """predicate indicating whether *block* includes a valid magic number"""
     return CpioMember.valid_magic(block)
 
+
 def is_cpiofile(name):
     """predicate indicating whether *name* is a valid cpiofile"""
-    with io.open(name, 'rb') as fff:
+    with io.open(name, "rb") as fff:
         return valid_magic(fff.read(16))
+
 
 class StructBase(object):
     """
@@ -140,6 +153,7 @@ class StructBase(object):
         """
         return self == other
 
+
 class CpioFile(StructBase):
     """Class representing an entire cpio file"""
 
@@ -189,7 +203,7 @@ class CpioFile(StructBase):
 
         if block is not None:
             if not name:
-                name = '<unknown>'
+                name = "<unknown>"
 
             self.unpack_from(block)
 
@@ -203,8 +217,7 @@ class CpioFile(StructBase):
 
         elif fileobj:
             try:
-                mymap = mmap.mmap(fileobj.fileno(), 0,
-                                  mmap.MAP_SHARED, mmap.PROT_READ)
+                mymap = mmap.mmap(fileobj.fileno(), 0, mmap.MAP_SHARED, mmap.PROT_READ)
 
             # pylint: disable=W0702
             except:
@@ -212,15 +225,12 @@ class CpioFile(StructBase):
                 block = fileobj.read()
 
         elif name:
-            fileobj = io.open(os.path.normpath(os.path.expanduser(name)), 'rb')
+            fileobj = io.open(os.path.normpath(os.path.expanduser(name)), "rb")
 
         else:
             assert False
 
-        return self._open(name=name,
-                         fileobj=fileobj,
-                         mymap=mymap,
-                         block=block)
+        return self._open(name=name, fileobj=fileobj, mymap=mymap, block=block)
 
     def close(self):
         """noop - here for completeness"""
@@ -229,7 +239,7 @@ class CpioFile(StructBase):
     def unpack_from(self, block, offset=0):
         pointer = offset
         print("unpack_from")
-        while 'TRAILER!!!' not in self.names:
+        while "TRAILER!!!" not in self.names:
             cmem = CpioMember.encoded_class(block, pointer)()
             print(type(cmem))
             self.members.append(cmem.unpack_from(block, pointer))
@@ -246,7 +256,7 @@ class CpioFile(StructBase):
 
         cmtype = type(self.members[0]) if self.members else CpioMemberNew
         cmt = cmtype()
-        cmt.name = 'TRAILER!!!'
+        cmt.name = "TRAILER!!!"
         cmt.pack_into(block, pointer)
 
     def get_member(self, name):
@@ -259,6 +269,7 @@ class CpioFile(StructBase):
 
     def __eq__(self, other):
         raise NotImplementedError
+
 
 class CpioMember(StructBase):
     """class representing a member of a cpio archive"""
@@ -306,10 +317,21 @@ class CpioMember(StructBase):
         raise InvalidFileFormat
 
     def unpack_from(self, block, offset=0):
-        (self.magic, dev, self.ino, self.mode,
-         self.uid, self.gid, self.nlink, rdev,
-         mtimehigh, mtimelow, namesize, filesizehigh,
-         filesizelow) = self.coder.unpack_from(block, offset)
+        (
+            self.magic,
+            dev,
+            self.ino,
+            self.mode,
+            self.uid,
+            self.gid,
+            self.nlink,
+            rdev,
+            mtimehigh,
+            mtimelow,
+            namesize,
+            filesizehigh,
+            filesizelow,
+        ) = self.coder.unpack_from(block, offset)
 
         self.devmajor = os.major(dev)
         self.devminor = os.minor(dev)
@@ -322,12 +344,12 @@ class CpioMember(StructBase):
         namestart = offset + self.coder.size
         datastart = namestart + namesize
 
-        self.name = block[namestart:datastart - 1]  # drop the null
+        self.name = block[namestart : datastart - 1]  # drop the null
 
         if isinstance(self, CpioMemberBin) and (namesize & 1):
             datastart += 1  # skip a pad byte if necessary
 
-        self.content = block[datastart:datastart + self.filesize]
+        self.content = block[datastart : datastart + self.filesize]
 
         return self
 
@@ -337,67 +359,95 @@ class CpioMember(StructBase):
         rdev = os.makedev(self.rdevmajor, self.rdevminor)
 
         mtimehigh = self.mtime >> 16
-        mtimelow = self.mtime & 0xffff
+        mtimelow = self.mtime & 0xFFFF
 
         filesizehigh = self.filesize >> 16
-        filesizelow = self.filesize & 0xffff
+        filesizelow = self.filesize & 0xFFFF
 
-        self.coder.pack_into(block, offset, self.magic, dev,
-                             self.ino, self.mode, self.uid, self.gid,
-                             self.nlink, rdev, mtimehigh, mtimelow,
-                             namesize, filesizehigh, filesizelow)
-        
+        self.coder.pack_into(
+            block,
+            offset,
+            self.magic,
+            dev,
+            self.ino,
+            self.mode,
+            self.uid,
+            self.gid,
+            self.nlink,
+            rdev,
+            mtimehigh,
+            mtimelow,
+            namesize,
+            filesizehigh,
+            filesizelow,
+        )
+
         namestart = offset + self.coder.size
         datastart = namestart + namesize + 1
 
-        block[namestart:datastart - 1] = self.name
-        block[datastart - 1] = '\x00'
+        block[namestart : datastart - 1] = self.name
+        block[datastart - 1] = "\x00"
 
         if isinstance(self, CpioMemberBin) and (namesize & 1):
             datastart += 1
-            block[datastart - 1] = '\x00'
+            block[datastart - 1] = "\x00"
 
-        block[datastart:datastart + self.filesize] = self.content
+        block[datastart : datastart + self.filesize] = self.content
 
         if isinstance(self, CpioMemberBin) and (self.filesize & 1):
-            block[datastart + self.filesize] = '\x00'
+            block[datastart + self.filesize] = "\x00"
 
         return self
 
     @property
     def size(self):
-        return (self.coder.size
-                + len(self.name) + 1
-                + self.filesize)
+        return self.coder.size + len(self.name) + 1 + self.filesize
 
     def __repr__(self):
-        return (b'<{0}@{1}: coder={2}, name=\'{3}\', magic=\'{4}\''
-                + ', devmajor={5}, devminor={6}, ino={7}, mode={8}'
-                + ', uid={9}, gid={10}, nlink={11}, rdevmajor={12}'
-                + ', rdevmino={13}, mtime={14}, filesize={15}>'
-                .format(self.__class__.__name__, hex(id(self)), self.coder,
-                        self.name, self.magic, self.devmajor, self.devminor,
-                        self.ino, self.mode, self.uid, self.gid, self.nlink,
-                        self.rdevmajor, self.rdevminor, self.mtime,
-                        self.filesize))
+        return (
+            b"<{0}@{1}: coder={2}, name='{3}', magic='{4}'"
+            + ", devmajor={5}, devminor={6}, ino={7}, mode={8}"
+            + ", uid={9}, gid={10}, nlink={11}, rdevmajor={12}"
+            + ", rdevmino={13}, mtime={14}, filesize={15}>".format(
+                self.__class__.__name__,
+                hex(id(self)),
+                self.coder,
+                self.name,
+                self.magic,
+                self.devmajor,
+                self.devminor,
+                self.ino,
+                self.mode,
+                self.uid,
+                self.gid,
+                self.nlink,
+                self.rdevmajor,
+                self.rdevminor,
+                self.mtime,
+                self.filesize,
+            )
+        )
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and self.coder == other.coder
-                and self.magic == other.magic
-                and self.devmajor == other.devmajor
-                and self.devminor == other.devminor
-                and self.ino == other.ino
-                and self.mode == other.mode
-                and self.uid == other.uid
-                and self.gid == other.gid
-                and self.nlink == other.nlink
-                and self.rdevmajor == other.rdevmajor
-                and self.rdevminor == other.rdevminor
-                and self.mtime == other.mtime
-                and self.filesize == other.filesize)
+        return (
+            isinstance(other, self.__class__)
+            and self.coder == other.coder
+            and self.magic == other.magic
+            and self.devmajor == other.devmajor
+            and self.devminor == other.devminor
+            and self.ino == other.ino
+            and self.mode == other.mode
+            and self.uid == other.uid
+            and self.gid == other.gid
+            and self.nlink == other.nlink
+            and self.rdevmajor == other.rdevmajor
+            and self.rdevminor == other.rdevminor
+            and self.mtime == other.mtime
+            and self.filesize == other.filesize
+        )
 
     close_enough = __eq__
+
 
 class CpioMemberBin(CpioMember):
     """intermediate class indicating binary members - for subclassing only"""
@@ -419,24 +469,40 @@ class CpioMemberBin(CpioMember):
 
         return retval
 
+
 class CpioMember32b(CpioMemberBin):
     """
     .. todo:: need to pad after name and after content for old binary.
     """
-    coder = struct.Struct(b'>2sHHHHHHHHHHHH')
+
+    coder = struct.Struct(b">2sHHHHHHHHHHHH")
+
 
 class CpioMember32l(CpioMemberBin):
     """class representing a 32bit little endian binary member"""
-    coder = struct.Struct(b'<2sHHHHHHHHHHHH')
+
+    coder = struct.Struct(b"<2sHHHHHHHHHHHH")
+
 
 class CpioMemberODC(CpioMember):
     """class representing an ODC member"""
-    coder = struct.Struct(b'=6s6s6s6s6s6s6s6s11s6s11s')
+
+    coder = struct.Struct(b"=6s6s6s6s6s6s6s6s11s6s11s")
 
     def unpack_from(self, block, offset=0):
-        (self.magic, dev, ino, mode,
-         uid, gid, nlink, rdev,
-         mtime, namesize, filesize) = self.coder.unpack_from(block, offset)
+        (
+            self.magic,
+            dev,
+            ino,
+            mode,
+            uid,
+            gid,
+            nlink,
+            rdev,
+            mtime,
+            namesize,
+            filesize,
+        ) = self.coder.unpack_from(block, offset)
         _namesize = namesize
         self.ino = int(ino, 8)
         self.mode = int(mode, 8)
@@ -458,9 +524,9 @@ class CpioMemberODC(CpioMember):
         namestart = offset + self.coder.size
         datastart = namestart + namesize
 
-        self.name = block[namestart:datastart - 1]  # drop the null
-        print('+', _namesize, self.name)
-        self.content = block[datastart:datastart + self.filesize]
+        self.name = block[namestart : datastart - 1]  # drop the null
+        print("+", _namesize, self.name)
+        self.content = block[datastart : datastart + self.filesize]
 
         return self
 
@@ -476,31 +542,45 @@ class CpioMemberODC(CpioMember):
         namesize = str(len(self.name) + 1)  # add a null
         filesize = str(self.filesize)
 
-        self.coder.pack_into(block, offset, self.magic, dev,
-                             ino, mode, uid, gid,
-                             nlink, rdev, mtime, namesize,
-                             filesize)
-        
+        self.coder.pack_into(
+            block,
+            offset,
+            self.magic,
+            dev,
+            ino,
+            mode,
+            uid,
+            gid,
+            nlink,
+            rdev,
+            mtime,
+            namesize,
+            filesize,
+        )
+
         namesize = len(self.name) + 1
 
         namestart = offset + self.coder.size
         datastart = namestart + namesize
 
-        block[namestart:datastart - 2] = self.name
-        block[datastart - 1] = '\x00'
-        block[datastart:datastart + self.filesize] = self.content
+        block[namestart : datastart - 2] = self.name
+        block[datastart - 1] = "\x00"
+        block[datastart : datastart + self.filesize] = self.content
 
         return self
 
+
 class CpioMemberNew(CpioMember):
     """class representing a new member"""
-    coder = struct.Struct(b'6s8s8s8s8s8s8s8s8s8s8s8s8s8s')
+
+    coder = struct.Struct(b"6s8s8s8s8s8s8s8s8s8s8s8s8s8s")
 
     # pylint: disable=W0613
     @staticmethod
     def _checksum(block, offset, length):
         """return a checksum for *block* at *offset* and *length*"""
         return 0
+
     # pylint: enable=W0613
 
     def unpack_from(self, block, offset=0):
@@ -530,9 +610,9 @@ class CpioMemberNew(CpioMember):
         datastart = nameend + ((4 - (nameend % 4)) % 4)  # pad
         dataend = datastart + self.filesize
 
-        self.name = block[namestart:nameend - 1]  # drop the null
-        print( "name", namesize, self.name) 
-        print( 'pad', ((4 - (nameend % 4)) % 4)  )# pad
+        self.name = block[namestart : nameend - 1]  # drop the null
+        print("name", namesize, self.name)
+        print("pad", ((4 - (nameend % 4)) % 4))  # pad
         self.content = block[datastart:dataend]
 
         if check != self._checksum(self.content, 0, self.filesize):
@@ -544,13 +624,24 @@ class CpioMemberNew(CpioMember):
         namesize = len(self.name) + 1
         # unused: rdev = os.makedev(self.rdevmajor, self.rdevminor)
         self.coder.pack_into(
-            block, offset, self.magic, str(self.ino), str(self.mode),
-            str(self.uid), str(self.gid), str(self.nlink),
-            str(self.mtime), str(self.filesize), str(self.devmajor),
-            str(self.devminor), str(self.rdevmajor),
-            str(self.rdevminor), str(namesize),
-            self._checksum(self.content, 0, self.filesize))
-        
+            block,
+            offset,
+            self.magic,
+            str(self.ino),
+            str(self.mode),
+            str(self.uid),
+            str(self.gid),
+            str(self.nlink),
+            str(self.mtime),
+            str(self.filesize),
+            str(self.devmajor),
+            str(self.devminor),
+            str(self.rdevmajor),
+            str(self.rdevminor),
+            str(namesize),
+            self._checksum(self.content, 0, self.filesize),
+        )
+
         namestart = offset + self.coder.size
         nameend = namestart + namesize
         datastart = nameend + ((4 - (nameend % 4)) % 4)  # pad
@@ -559,13 +650,13 @@ class CpioMemberNew(CpioMember):
         block[namestart:nameend] = self.name
 
         for i in range(nameend, datastart):
-            block[i] = '\x00'
+            block[i] = "\x00"
 
         block[datastart:dataend] = self.content
 
         padend = dataend + ((4 - (datastart % 4)) % 4)  # pad
         for i in range(dataend, padend):
-            block[i] = '\x00'
+            block[i] = "\x00"
 
         return self
 
@@ -573,13 +664,15 @@ class CpioMemberNew(CpioMember):
     def size(self):
         retval = self.coder.size
         retval += len(self.name) + 1
-        retval += ((4 - (retval % 4)) % 4)
+        retval += (4 - (retval % 4)) % 4
         retval += self.filesize
-        retval += ((4 - (retval % 4)) % 4)
+        retval += (4 - (retval % 4)) % 4
         return retval
+
 
 class CpioMemberCRC(CpioMemberNew):
     """class representing a cpio archive member with a CRC"""
+
     @staticmethod
     def _checksum(block, offset, length):
         csum = 0
@@ -587,14 +680,13 @@ class CpioMemberCRC(CpioMemberNew):
         for i in range(length):
             csum += ord(block[offset + i])
 
-        return csum & 0xffffffff
+        return csum & 0xFFFFFFFF
+
 
 __magicmap__ = {
-    b'\x71\xc7': CpioMember32b,
-    b'\xc7\x71': CpioMember32l,
-    b'070707': CpioMemberODC,
-    b'070701': CpioMemberNew,
-    b'070702': CpioMemberCRC,
-    }
-
-
+    b"\x71\xc7": CpioMember32b,
+    b"\xc7\x71": CpioMember32l,
+    b"070707": CpioMemberODC,
+    b"070701": CpioMemberNew,
+    b"070702": CpioMemberCRC,
+}

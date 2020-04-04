@@ -1,21 +1,26 @@
-'''
+"""
 Created on Jan 11, 2014
 
 @author: sean
-'''
+"""
 import io
+
+
 def _doc(from_func):
-    '''copy doc from one function to another
+    """copy doc from one function to another
     use as a decorator eg::
         
         @_doc(file.tell)
         def tell(..):
             ...
-    '''
+    """
+
     def decorator(to_func):
         to_func.__doc__ = from_func.__doc__
         return to_func
+
     return decorator
+
 
 class _SubFile(object):
     """A thin wrapper around an existing file object that
@@ -92,4 +97,3 @@ class _SubFile(object):
             yield line
             line = self.readline(n)
             n -= len(line)
-
