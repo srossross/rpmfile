@@ -32,6 +32,15 @@ with rpmfile.open('file.rpm') as rpm:
 * rpmfile.RPMFile: The RPMFile object provides an interface to a RPM archive
 * rpmfile.RPMInfo: An RPMInfo object represents one member in a RPMFile.
 
+## Contributing
+
+The [black](https://github.com/psf/black) formater should be used on all files
+before submitting a contribution.
+
+```console
+$ black .
+```
+
 ## Code in this module was borrowed from:
 
 * https://bitbucket.org/krp/cpiofile
