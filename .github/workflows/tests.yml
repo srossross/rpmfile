@@ -19,10 +19,17 @@ jobs:
     - name: Dependencies
       run: |
         pip install -U pip
-        pip install -U twine dffml==0.3.5
+        if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
+          pip install -U black twine dffml==0.3.5
+        fi
     - name: Test
       run: |
         python setup.py test
+    - name: Style
+      run: |
+        if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
+          black --check .
+        fi
     - name: Release
       run: |
         if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
