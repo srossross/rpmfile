@@ -74,6 +74,31 @@ class TempDirTest(unittest.TestCase):
                 calculated = hashlib.md5(fd.read()).hexdigest()
                 self.assertEqual(calculated, "a208f3d9170ecfa69a0f4ccc78d2f8f6")
 
+    @unittest.skipUnless(
+        sys.version_info.major >= 3 and sys.version_info.minor >= 5, "Need io.BytesIO"
+    )
+    @download(
+        "https://github.com/srossross/rpmfile/files/4505148/xmlstarlet-1.6.1-14.fc32.x86_64.txt",
+        "xmlstarlet.rpm",
+    )
+    def test_zstd_xmlstarlet(self, rpmpath):
+        with rpmfile.open(rpmpath) as rpm:
+
+            # Inspect the RPM headers
+            self.assertIn("name", rpm.headers.keys())
+            self.assertEqual(rpm.headers.get("arch", "noarch"), b"x86_64")
+
+            members = list(rpm.getmembers())
+            self.assertEqual(len(members), 15)
+
+            with rpm.extractfile("./usr/bin/xmlstarlet") as fd:
+                calculated = hashlib.md5(fd.read()).hexdigest()
+                self.assertEqual(calculated, "c5e22d7e47751565b56e507cb6ee375e")
+
+            with rpm.extractfile("./usr/share/doc/xmlstarlet/ChangeLog") as fd:
+                calculated = hashlib.md5(fd.read()).hexdigest()
+                self.assertEqual(calculated, "68b329da9893e34099c7d8ad5cb9c940")
+
     @download(
         "https://download.fedoraproject.org/pub/fedora/linux/releases/30/Everything/source/tree/Packages/r/rpm-4.14.2.1-4.fc30.1.src.rpm",
         "sample.rpm",
