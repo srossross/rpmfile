@@ -35,5 +35,8 @@ jobs:
         if [ "x${GITHUB_ACTIONS}" == "xtrue" ] && [ "x${GITHUB_REF}" == "xrefs/heads/master" ] && [ "x${{ matrix.python-version }}" == "x3.8" ]; then
           export TWINE_USERNAME=__token__
           export TWINE_PASSWORD=${{ secrets.PYPI_RPMFILE }}
+          git status
+          git clean -xdf
+          git reset --hard HEAD
           dffml service dev release .
         fi
