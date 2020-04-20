@@ -7,6 +7,21 @@
 Tools for inspecting RPM files in python. This module is modeled after the
 [tarfile](https://docs.python.org/3/library/tarfile.html) module.
 
+## Install
+
+```console
+$ python -m pip install -U rpmfile
+```
+
+If you want to use `rpmfile` with `zstd` compressed rpms, you'll need to install
+the  [zstandard](https://pypi.org/project/zstandard/) module.
+
+`zstd` also requires that you are using Python >= 3.5
+
+```console
+$ python -m pip install -U zstandard
+```
+
 ## Example
 
 ```python
