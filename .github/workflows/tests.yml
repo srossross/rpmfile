@@ -32,7 +32,7 @@ jobs:
         fi
     - name: Release
       run: |
-        if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
+        if [ "x${GITHUB_ACTIONS}" == "xtrue" ] && [ "x${GITHUB_REF}" == "xrefs/heads/master" ] && [ "x${{ matrix.python-version }}" == "x3.8" ]; then
           export TWINE_USERNAME=__token__
           export TWINE_PASSWORD=${{ secrets.PYPI_RPMFILE }}
           dffml service dev release .
