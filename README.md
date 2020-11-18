@@ -43,6 +43,22 @@ with rpmfile.open('file.rpm') as rpm:
         print(member)
 ```
 
+## Command line usage
+
+```console
+$ python -m rpmfile -h
+usage: rpmfile [-h] [-x] [-C DEST] [-l] infile
+
+positional arguments:
+  infile
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -x, --extract         Extract the input RPM
+  -C DEST, --directory DEST
+                        Extract to this directory when extracting files
+  -l, --list            List files in RPM without extracting
+```
 
 ## Classes
 
