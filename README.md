@@ -24,6 +24,8 @@ $ python -m pip install -U zstandard
 
 ## Example
 
+See the [tests](tests/test_extract.py) for more examples.
+
 ```python
 import rpmfile
 
