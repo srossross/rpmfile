@@ -20,7 +20,7 @@ jobs:
       run: |
         pip install -U pip
         if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
-          pip install -U black twine dffml==0.3.5
+          pip install -U black==19.10b0 twine dffml==0.3.5
         fi
     - name: Test
       run: |
