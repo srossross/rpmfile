@@ -100,7 +100,7 @@ class TempDirTest(unittest.TestCase):
                 self.assertEqual(calculated, "68b329da9893e34099c7d8ad5cb9c940")
 
     @download(
-        "https://download.fedoraproject.org/pub/fedora/linux/releases/30/Everything/source/tree/Packages/r/rpm-4.14.2.1-4.fc30.1.src.rpm",
+        "https://github.com/srossross/rpmfile/files/5561331/rpm-4.15.0-6.fc31.src.rpm.txt",
         "sample.rpm",
     )
     def test_autoclose(self, rpmpath):
@@ -112,21 +112,21 @@ class TempDirTest(unittest.TestCase):
 
             # Inspect the RPM headers
             self.assertIn("name", rpm.headers.keys())
-            self.assertEqual(rpm.headers.get("arch", "noarch"), b"x86_64")
+            self.assertEqual(rpm.headers.get("arch", "noarch"), b"armv7hl")
 
             members = list(rpm.getmembers())
-            self.assertEqual(len(members), 13)
+            self.assertEqual(len(members), 12)
 
             # Test that subfile does not close parent file by calling close and
             # then extractfile again
-            fd = rpm.extractfile("rpm-4.13.90-ldflags.patch")
+            fd = rpm.extractfile("rpm-4.15.x-ldflags.patch")
             calculated = hashlib.md5(fd.read()).hexdigest()
-            self.assertEqual(calculated, "4841553ad9276fffd83df33643839a57")
+            self.assertEqual(calculated, "65224837f744ab699d0c8762147b2a6b")
             fd.close()
 
             fd = rpm.extractfile("rpm.spec")
             calculated = hashlib.md5(fd.read()).hexdigest()
-            self.assertEqual(calculated, "ed96e23cf7f8dd17c459e0dd4618888c")
+            self.assertEqual(calculated, "e59ea2cc856d3cc83538b00833f4d7b8")
             fd.close()
 
         # Test that RPMFile owned file descriptor and that underlying file is really closed
