@@ -1,6 +1,4 @@
-import sys
-
-from .cli import main
+from .cli import console_script_entry_point
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    console_script_entry_point()

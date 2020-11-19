@@ -45,19 +45,29 @@ with rpmfile.open('file.rpm') as rpm:
 
 ## Command line usage
 
-```console
-$ python -m rpmfile -h
-usage: rpmfile [-h] [-x] [-C DEST] [-l] infile
+You can use `rpmfile` via it's module invocation or via `rpmfile` command if
+your `PATH` environment variable is configured correctly. Pass `--help` for all
+options.
 
-positional arguments:
-  infile
+List RPM contents
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -x, --extract         Extract the input RPM
-  -C DEST, --directory DEST
-                        Extract to this directory when extracting files
-  -l, --list            List files in RPM without extracting
+```conosle
+curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | python -m rpmfile -l -
+./path/to/file
+```
+
+Extract files
+
+```conosle
+curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -x -
+./path/to/file
+```
+
+Extract files to directory
+
+```conosle
+curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -xC /tmp -
+/tmp/path/to/file
 ```
 
 ## Classes
