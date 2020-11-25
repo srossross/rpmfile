@@ -37,6 +37,13 @@ def main(*argv):
         action="store_true",
         help="List files in RPM without extracting",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Print filenames when extracting",
+    )
     args = parser.parse_args(argv)
 
     if args.infile == "-":
@@ -82,7 +89,8 @@ def main(*argv):
                         outfile.write(rpmfileobj.read())
                     finally:
                         outfile.close()
-                    print(target)
+                    if args.verbose:
+                        print(target)
                     output["extracted"].append(rpminfo.name.split("/"))
     else:
         raise Exception("Nothing to do")

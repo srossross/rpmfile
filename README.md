@@ -59,14 +59,14 @@ curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | python -m rpmfile -l -
 Extract files
 
 ```conosle
-curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -x -
+curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -xv -
 ./path/to/file
 ```
 
 Extract files to directory
 
 ```conosle
-curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -xC /tmp -
+curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -xvC /tmp -
 /tmp/path/to/file
 ```
 
