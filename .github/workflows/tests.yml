@@ -41,6 +41,7 @@ jobs:
           tag=${GITHUB_REF/refs\/tags\//}
           if [ "x${tag}" != "x${pypi_version}" ]; then
             git reset --hard HEAD
+            python setup.py sdist
             python setup.py bdist_wheel
             python -m twine upload dist/*
           fi
