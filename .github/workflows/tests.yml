@@ -20,7 +20,7 @@ jobs:
       run: |
         pip install -U pip zstandard
         if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
-          pip install -U black==19.10b0 twine
+          pip install -U black==19.10b0 setuptools wheel twine
         fi
     - name: Test
       run: |
