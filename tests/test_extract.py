@@ -89,7 +89,7 @@ class TempDirTest(unittest.TestCase):
             self.assertEqual(rpm.headers.get("arch", "noarch"), b"x86_64")
 
             members = list(rpm.getmembers())
-            self.assertEqual(len(members), 15)
+            self.assertEqual(len(members), 12)
 
             with rpm.extractfile("./usr/bin/xmlstarlet") as fd:
                 calculated = hashlib.md5(fd.read()).hexdigest()

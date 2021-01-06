@@ -78,8 +78,9 @@ class RPMInfo(object):
         file_size = int(d[6], 16)
         fileobj.seek(file_size, 1)
         fileobj.seek(pad(fileobj), 1)
-        nlink = int(d[4], 16)
-        isdir = nlink == 2 and file_size == 0
+        # https://www.mankier.com/5/cpio under Old Binary Format mode bits
+        mode = int(d[1], 16)
+        isdir = mode & int("0040000", 8)
         return cls(name, file_start, file_size, initial_offset, isdir)
 
 
