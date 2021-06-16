@@ -74,32 +74,35 @@ def main(*argv):
                 print(rpminfo.name)
                 output["list"].append(rpminfo.name.split("/"))
     elif args.info:
+        output["info"] = ""
         with rpmfile.open(fileobj=buf) as rpm:
             headers_titles = {
-                'name': 'Name',
-                'version': 'Version',
-                'release': 'Release',
-                'arch': 'Architecture',
-                'group': 'Group',
-                'size': 'Size',
-                'copyright': 'License',
-                'signature': 'Signature',
-                'sourcerpm': 'Source RPM',
-                'buildtime': 'Build Date',
-                'buildhost': 'Build Host',
-                'url': 'URL',
-                'summary': 'Summary',
-                'description': 'Description',
+                "name": "Name",
+                "version": "Version",
+                "release": "Release",
+                "arch": "Architecture",
+                "group": "Group",
+                "size": "Size",
+                "copyright": "License",
+                "signature": "Signature",
+                "sourcerpm": "Source RPM",
+                "buildtime": "Build Date",
+                "buildhost": "Build Host",
+                "url": "URL",
+                "summary": "Summary",
+                "description": "Description",
             }
             for header in headers_titles:
                 value = rpm.headers.get(header)
                 if isinstance(value, bytes):
                     value = value.decode()
-                if header == 'buildtime':
+                if header == "buildtime":
                     value = datetime.fromtimestamp(value)
-                if header == 'description':
-                    value = '\n' + value
-                print('%s: %s' % (headers_titles.get(header).ljust(12),value))
+                if header == "description":
+                    value = "\n" + value
+                line = "%s: %s" % (headers_titles.get(header).ljust(12),value)
+                print(line)
+                output["info"] += line + "\n"
     elif args.extract:
         output["extracted"] = []
         dest = os.path.abspath(args.dest)

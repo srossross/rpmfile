@@ -11,6 +11,23 @@ from .test_extract import download
 class TempCLI(unittest.TestCase):
     GOPACKET_LICENSE_DIRS = [".", "usr", "share", "doc", "gopacket-license"]
     GOPACKET_LICENSE_FILES = ["AUTHORS", "LICENSE"]
+    GOPACKET_LICENSE_INFO = (
+        "Name        : gopacket-license\n"
+        "Version     : 2019_04_08T07_36_42Z\n"
+        "Release     : 1\n"
+        "Architecture: noarch\n"
+        "Group       : default\n"
+        "Size        : 3223\n"
+        "License     : BSD\n"
+        "Signature   : None\n"
+        "Source RPM  : gopacket-license-2019_04_08T07_36_42Z-1.src.rpm\n"
+        "Build Date  : 2019-04-09 15:55:16\n"
+        "Build Host  : jenkins-slave-fat-cloud-nlbzt\n"
+        "URL         : http://example.com/no-uri-given\n"
+        "Summary     : License for gopacket-license\n"
+        "Description : \n"
+        "License for gopacket-license\n"
+    )
 
     def setUp(cls):
         cls.prevdir = os.getcwd()
@@ -52,3 +69,13 @@ class TempCLI(unittest.TestCase):
         self.assertEqual(len(output["list"]), len(self.GOPACKET_LICENSE_FILES))
         for filename in self.GOPACKET_LICENSE_FILES:
             self.assertIn(self.GOPACKET_LICENSE_DIRS + [filename], output["list"])
+
+    @download(
+        "https://github.com/srossross/rpmfile/files/3150016/gopacket-license.noarch.rpm.gz",
+        "gopacket.rpm",
+    )
+    def test_info(self, rpmpath):
+        """That the command line get RPM infomation correctly"""
+        _args, output = main("-i", rpmpath)
+        self.assertEqual(output["info"], self.GOPACKET_LICENSE_INFO)
+
