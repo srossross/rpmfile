@@ -70,6 +70,29 @@ curl -sfL 'https://example.com/some.rpm.gz' | gzip -d - | rpmfile -xvC /tmp -
 /tmp/path/to/file
 ```
 
+Display RPM information (similar to command `rpm -qip` in Linux)
+
+```conosle
+curl -sfL 'https://example.com/some.rpm.gz' |gzip -d - | rpmfile -i -
+Name        : something
+Version     : 1.02
+Release     : 1
+Architecture: noarch
+Group       : default
+Size        : 1234
+License     : BSD
+Signature   : None
+Source RPM  : some.src.rpm
+Build Date  : Tue Apr  9 08:55:16 2019
+Build Host  : demo
+URL         : http://example.com/some
+Summary     : Example of something
+Description : 
+The description of something.
+It can display more than one line.
+```
+
+
 ## Classes
 
 * rpmfile.RPMFile: The RPMFile object provides an interface to a RPM archive
