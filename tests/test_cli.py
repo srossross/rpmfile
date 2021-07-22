@@ -82,4 +82,3 @@ class TempCLI(unittest.TestCase):
         """That the command line get RPM infomation correctly"""
         _args, output = main("-i", rpmpath)
         self.assertEqual(output["info"], self.GOPACKET_LICENSE_INFO)
-

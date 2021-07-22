@@ -100,7 +100,7 @@ def main(*argv):
                     value = datetime.fromtimestamp(value).strftime("%c")
                 if header == "description":
                     value = "\n" + value
-                line = "%s: %s" % (headers_titles.get(header).ljust(12),value)
+                line = "%s: %s" % (headers_titles.get(header).ljust(12), value)
                 print(line)
                 output["info"] += line + "\n"
     elif args.extract:
