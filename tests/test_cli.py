@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import time
 import unittest
 
 from rpmfile.cli import main
@@ -21,7 +22,7 @@ class TempCLI(unittest.TestCase):
         "License     : BSD\n"
         "Signature   : None\n"
         "Source RPM  : gopacket-license-2019_04_08T07_36_42Z-1.src.rpm\n"
-        "Build Date  : 2019-04-09 15:55:16\n"
+        "Build Date  : Tue Apr  9 08:55:16 2019\n"
         "Build Host  : jenkins-slave-fat-cloud-nlbzt\n"
         "URL         : http://example.com/no-uri-given\n"
         "Summary     : License for gopacket-license\n"
@@ -33,6 +34,9 @@ class TempCLI(unittest.TestCase):
         cls.prevdir = os.getcwd()
         cls.tempdir = tempfile.mkdtemp()
         os.chdir(cls.tempdir)
+        os.environ["LC_ALL"] = "C"
+        os.environ["TZ"] = "UTC"
+        time.tzset()
 
     def tearDown(cls):
         shutil.rmtree(cls.tempdir)

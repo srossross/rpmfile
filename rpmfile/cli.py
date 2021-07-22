@@ -97,7 +97,7 @@ def main(*argv):
                 if isinstance(value, bytes):
                     value = value.decode()
                 if header == "buildtime":
-                    value = datetime.fromtimestamp(value)
+                    value = datetime.fromtimestamp(value).strftime("%c")
                 if header == "description":
                     value = "\n" + value
                 line = "%s: %s" % (headers_titles.get(header).ljust(12),value)
