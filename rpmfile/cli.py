@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+from datetime import datetime
 import os
 import io
 import sys
@@ -38,6 +39,13 @@ def main(*argv):
         help="List files in RPM without extracting",
     )
     parser.add_argument(
+        "-i",
+        "--info",
+        dest="info",
+        action="store_true",
+        help="Display RPM information without extracting",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="verbose",
@@ -65,6 +73,36 @@ def main(*argv):
             for rpminfo in rpm.getmembers():
                 print(rpminfo.name)
                 output["list"].append(rpminfo.name.split("/"))
+    elif args.info:
+        output["info"] = ""
+        with rpmfile.open(fileobj=buf) as rpm:
+            headers_titles = {
+                "name": "Name",
+                "version": "Version",
+                "release": "Release",
+                "arch": "Architecture",
+                "group": "Group",
+                "size": "Size",
+                "copyright": "License",
+                "signature": "Signature",
+                "sourcerpm": "Source RPM",
+                "buildtime": "Build Date",
+                "buildhost": "Build Host",
+                "url": "URL",
+                "summary": "Summary",
+                "description": "Description",
+            }
+            for header in headers_titles:
+                value = rpm.headers.get(header)
+                if isinstance(value, bytes):
+                    value = value.decode()
+                if header == "buildtime":
+                    value = datetime.fromtimestamp(value).strftime("%c")
+                if header == "description":
+                    value = "\n" + value
+                line = "%s: %s" % (headers_titles.get(header).ljust(12), value)
+                print(line)
+                output["info"] += line + "\n"
     elif args.extract:
         output["extracted"] = []
         dest = os.path.abspath(args.dest)
