@@ -30,7 +30,8 @@ jobs:
         if [ "x${{ matrix.python-version }}" == "x3.8" ]; then
           black --check .
         fi
-    - name: Release
+    - name: PyPi Release
+      id: pypi-release
       run: |
         if [[ "x${GITHUB_REF}" == "xrefs/tags/"* ]] && [[ "x${{ matrix.python-version }}" == "x3.8" ]]; then
           export TWINE_USERNAME=__token__
@@ -39,10 +40,24 @@ jobs:
           git clean -xdf
           pypi_version=$(python -c 'import json, urllib.request; print(json.loads(urllib.request.urlopen("https://pypi.org/pypi/rpmfile/json").read())["info"]["version"])')
           tag=${GITHUB_REF/refs\/tags\//}
+          echo "::set-output name=tag::${tag}"
           if [ "x${tag}" != "x${pypi_version}" ]; then
             git reset --hard HEAD
             python setup.py sdist
             python setup.py bdist_wheel
             python -m twine upload dist/*
+            echo "::set-output name=uploaded-new::true"
+          else
+            echo "::set-output name=uploaded-new::false"
           fi
         fi
+    - name: GitHub Release
+      if: ${{ matrix.python-version == '3.8' && steps.pypi-release.outputs.uploaded-new == 'true' }}
+      uses: "marvinpinto/action-automatic-releases@4edd7a5aabb1bc62e6dc99b3302d587bf3134e20"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "${{ steps.pypi-release.outputs.tag }}"
+        prerelease: false
+        title: "${{ steps.pypi-release.outputs.tag }}"
+        files: |
+          dist/*
