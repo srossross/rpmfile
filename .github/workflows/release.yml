@@ -1,0 +1,32 @@
+on:
+  release:
+    types:
+    - published
+
+jobs:
+  release:
+    - name: Install PyPi Release Dependencies
+      run: |
+        pip install -U setuptools wheel twine
+    - name: Package
+      run: |
+        python setup.py sdist
+        python setup.py bdist_wheel
+    - name: PyPi Release
+      id: pypi-release
+      run: |
+        python setup.py sdist
+        python setup.py bdist_wheel
+        echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}}"
+        export TWINE_USERNAME=__token__
+        export TWINE_PASSWORD=${{ secrets.PYPI_RPMFILE }}
+        python -m twine upload dist/*
+    - name: GitHub Release
+      uses: "marvinpinto/action-automatic-releases@4edd7a5aabb1bc62e6dc99b3302d587bf3134e20"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "${{ steps.pypi-release.outputs.tag }}"
+        prerelease: false
+        title: "${{ steps.pypi-release.outputs.tag }}"
+        files: |
+          dist/*
