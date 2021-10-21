@@ -1,3 +1,5 @@
+name: Release
+
 on:
   release:
     types:
@@ -5,6 +7,12 @@ on:
 
 jobs:
   release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+        - 3.8
+    steps:
     - name: Install PyPi Release Dependencies
       run: |
         pip install -U setuptools wheel twine
