@@ -3,6 +3,7 @@ from .headers import get_headers
 import sys
 import io
 import gzip
+import bz2
 
 try:
     import lzma
@@ -194,6 +195,9 @@ class RPMFile(object):
                     raise NoBytesIOError("Need io.BytesIO (Python >= 3.5)")
                 with zstandard.ZstdDecompressor().stream_reader(fileobj) as zstd_data:
                     self._data_file = io.BytesIO(zstd_data.read())
+
+            elif self.headers["archive_compression"] == b"bzip2":
+                self._data_file = bz2.BZ2File(fileobj)
             else:
                 self._data_file = gzip.GzipFile(fileobj=fileobj)
 
