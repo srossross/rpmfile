@@ -11,7 +11,6 @@ import io
 
 class Test(unittest.TestCase):
     def test_seek(self):
-
         fd = io.BytesIO(b"Hello world")
         sub = rpmfile._SubFile(fd, start=2, size=4)
 
@@ -31,7 +30,6 @@ class Test(unittest.TestCase):
         self.assertEqual(sub.tell(), 0)
 
     def test_read(self):
-
         fd = io.BytesIO(b"Hello world")
         sub = rpmfile._SubFile(fd, start=2, size=4)
 

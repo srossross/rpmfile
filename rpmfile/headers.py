@@ -412,7 +412,6 @@ def get_headers(fileobj):
 
 
 def main():
-
     with open(sys.argv[1]) as fileobj:
         headers = get_headers(fileobj)
         pprint(headers)

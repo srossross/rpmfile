@@ -9,7 +9,7 @@ import io
 def _doc(from_func):
     """copy doc from one function to another
     use as a decorator eg::
-        
+
         @_doc(file.tell)
         def tell(..):
             ...
@@ -24,8 +24,8 @@ def _doc(from_func):
 
 class _SubFile(object):
     """A thin wrapper around an existing file object that
-       provides a part of its data as an individual file
-       object.
+    provides a part of its data as an individual file
+    object.
     """
 
     def __init__(self, fileobj, start=0, size=None):

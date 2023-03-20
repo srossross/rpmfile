@@ -37,7 +37,7 @@ class RPMInfo(object):
     """
     Informational class which holds the details about an
     archive member given by an RPM entry block.
-    RPMInfo objects are returned by RPMFile.getmember() and 
+    RPMInfo objects are returned by RPMFile.getmember() and
     RPMFile.getmembers() and are
     usually created internally.
     """
@@ -89,7 +89,7 @@ class RPMFile(object):
     """
     Open an RPM archive `name'. `mode' must be 'r' to
     read from an existing archive.
-    
+
     If `fileobj' is given, it is used for reading or writing data. If it
     can be determined, `mode' is overridden by `fileobj's mode.
     `fileobj' is not closed, when TarFile is closed.
@@ -97,7 +97,6 @@ class RPMFile(object):
     """
 
     def __init__(self, name=None, mode="rb", fileobj=None):
-
         if mode != "rb":
             raise NotImplementedError("currently the only supported mode is 'rb'")
         self._fileobj = fileobj or io.open(name, mode)
