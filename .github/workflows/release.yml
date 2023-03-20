@@ -11,20 +11,22 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - 3.8
+        - "3.10"
     steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Install PyPi Release Dependencies
       run: |
-        pip install -U setuptools wheel twine
-    - name: Package
+        pip install -U setuptools wheel twine build
+    - name: Build Package
       run: |
-        python setup.py sdist
-        python setup.py bdist_wheel
+        python -m build
     - name: PyPi Release
       id: pypi-release
       run: |
-        python setup.py sdist
-        python setup.py bdist_wheel
         echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}}"
         export TWINE_USERNAME=__token__
         export TWINE_PASSWORD=${{ secrets.PYPI_RPMFILE }}
