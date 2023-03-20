@@ -28,10 +28,10 @@ jobs:
       run: |
         python setup.py test
     - name: Style
-      if: ${{ matrix.python-version == '3.11' }}
+      if: ${{ matrix.python-version == '3.7' }}
       run: |
         pip install -U black==23.1.0
-        black --check .
+        black -t py37 --check .
     - name: Package
       run: |
         python -m build
