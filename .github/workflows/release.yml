@@ -26,6 +26,7 @@ jobs:
         python -m build
     - name: PyPi Release
       id: pypi-release
+      if: ${{ secrets.PYPI_RPMFILE != '' }}
       run: |
         echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
         export TWINE_USERNAME=__token__
