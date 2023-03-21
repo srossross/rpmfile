@@ -24,11 +24,19 @@ jobs:
     - name: Build Package
       run: |
         python -m build
+    - name: Get tag
+      id: get-tag
+      run: |
+        echo "tag=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+        if [ "x${{ secrets.PYPI_RPMFILE }}" == "x" ]; then
+          echo "has_pypi_token=no" >> $GITHUB_OUTPUT
+        else
+          echo "has_pypi_token=yes" >> $GITHUB_OUTPUT
+        fi
     - name: PyPi Release
       id: pypi-release
-      if: ${{ secrets.PYPI_RPMFILE != '' }}
+      if: ${{ steps.get-tag.outputs.has_pypi_token == 'yes' }}
       run: |
-        echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
         export TWINE_USERNAME=__token__
         export TWINE_PASSWORD=${{ secrets.PYPI_RPMFILE }}
         python -m twine upload dist/*
@@ -36,7 +44,7 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@4edd7a5aabb1bc62e6dc99b3302d587bf3134e20"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "${{ steps.pypi-release.outputs.tag }}"
+        automatic_release_tag: "${{ steps.get-tag.outputs.tag }}"
         prerelease: false
         title: "${{ steps.pypi-release.outputs.tag }}"
         files: |
