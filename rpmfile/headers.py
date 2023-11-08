@@ -14,6 +14,7 @@ tags = {
     "headersignatures": 62,
     "headerimmutable": 63,
     "headerregions": 64,
+    "headeri18ntable": 100,
     "sig_base": 256,
     "sigsize": 257,
     "sigpgp": 259,
@@ -317,6 +318,13 @@ def extract_string(offset, count, store):
     return store[offset : offset + idx]
 
 
+def extract_i18nstring(offset, count, store):
+    # rpm string header entries can have multiple versions, one for each locale.
+    # the locale names are defined in the i18n table header entry. For the sake of
+    # simplicity, take only one locale to use
+    return store[offset:].split(b"\x00", count)[0]
+
+
 def extract_array(offset, count, store):
     return store[offset:].split(b"\x00", count)[:-1]
 
@@ -345,7 +353,7 @@ ty_map = {
     6: extract_string,
     7: extract_bin,
     8: extract_array,
-    9: extract_string,
+    9: extract_i18nstring,
 }
 
 
