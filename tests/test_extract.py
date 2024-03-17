@@ -146,10 +146,18 @@ class TempDirTest(unittest.TestCase):
     )
     def test_unsigned_ints(self, rpmpath):
         with rpmfile.open(rpmpath) as rpm:
-            self.assertEqual(1689811200, rpm.headers['filemtimes'][0])
-            mode = rpm.headers['filemodes'][0]
+            self.assertEqual(1689811200, rpm.headers["filemtimes"][0])
+            mode = rpm.headers["filemodes"][0]
             st_type = stat.S_IFMT(mode)
             st_mode = stat.S_IMODE(mode)
             self.assertTrue(stat.S_ISREG(st_type))
-            self.assertEqual(stat.S_IRUSR|stat.S_IWUSR|stat.S_IXUSR|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH, st_mode)
-
+            self.assertEqual(
+                stat.S_IRUSR
+                | stat.S_IWUSR
+                | stat.S_IXUSR
+                | stat.S_IRGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IXOTH,
+                st_mode,
+            )
