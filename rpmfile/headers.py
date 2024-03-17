@@ -336,14 +336,14 @@ def extract_bin(offset, count, store):
 
 
 def extract_int32(offset, count, store):
-    values = struct.unpack(b"!" + b"i" * count, store[offset : offset + 4 * count])
+    values = struct.unpack(b"!" + b"I" * count, store[offset : offset + 4 * count])
     if count == 1:
         values = values[0]
     return values
 
 
 def extract_int16(offset, count, store):
-    values = struct.unpack(b"!" + b"h" * count, store[offset : offset + 2 * count])
+    values = struct.unpack(b"!" + b"H" * count, store[offset : offset + 2 * count])
     if count == 1:
         values = values[0]
     return values
