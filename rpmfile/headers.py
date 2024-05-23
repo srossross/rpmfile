@@ -16,16 +16,16 @@ sigtags = {
     "lemd5_1": 1001,
     "pgp": 1002,
     "lemd5_2": 1003,
-    "sigmd5": 1004,  #md5 in C code but collides with md5 here
+    "sigmd5": 1004,  # md5 in C code but collides with md5 here
     "gpg": 1005,
     "pgp5": 1006,
     "payloadsize": 1007,
     "reservedspace": 1008,
     "badsha1_1": 264,
-    "badsha1_2": 265, 
+    "badsha1_2": 265,
     "signature": 267,
     "rsaheader": 268,
-    "md5": 269,  #sha1header in C code
+    "md5": 269,  # sha1header in C code
     "longsigsize": 270,
     "longarchivesize": 271,
     "sha256": 273,
@@ -52,9 +52,9 @@ tags = {
     "badsha1_1": 264,
     "badsha1_2": 265,
     "pubkeys": 266,
-    "signature": 267, #dsaheader in C code
+    "signature": 267,  # dsaheader in C code
     "rsaheader": 268,
-    "md5": 269,  #sha1header in C code
+    "md5": 269,  # sha1header in C code
     "longsigsize": 270,
     "longarchivesize": 271,
     "sha256": 273,
@@ -461,9 +461,9 @@ def get_headers(fileobj):
     data = fileobj.read(lead.size)
     value = lead.unpack(data)
 
-    #signature header
+    # signature header
     first_range, first_headers = _readheader(fileobj, True)
-    #main header
+    # main header
     second_range, second_headers = _readheader(fileobj, False)
 
     first_headers.update(second_headers)
