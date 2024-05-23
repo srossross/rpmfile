@@ -9,6 +9,32 @@ import struct
 from pprint import pprint
 from .errors import RPMError
 
+sigtags = {
+    "headerimage": 61,
+    "headersignatures": 62,
+    "size": 1000,
+    "lemd5_1": 1001,
+    "pgp": 1002,
+    "lemd5_2": 1003,
+    "sigmd5": 1004,  #md5 in C code but collides with md5 here
+    "gpg": 1005,
+    "pgp5": 1006,
+    "payloadsize": 1007,
+    "reservedspace": 1008,
+    "badsha1_1": 264,
+    "badsha1_2": 265, 
+    "signature": 267,
+    "rsaheader": 268,
+    "md5": 269,  #sha1header in C code
+    "longsigsize": 270,
+    "longarchivesize": 271,
+    "sha256": 273,
+    "filesignatures": 274,
+    "filesignaturelength": 275,
+    "veritysignatures": 276,
+    "veritysignaturealgo": 277,
+}
+
 tags = {
     "headerimage": 61,
     "headersignatures": 62,
@@ -17,14 +43,23 @@ tags = {
     "headeri18ntable": 100,
     "sig_base": 256,
     "sigsize": 257,
+    "siglemd5_1": 258,
     "sigpgp": 259,
+    "siglemd5_2": 260,
+    "sigmd5": 261,
     "siggpg": 262,
+    "sigpgp5": 263,
+    "badsha1_1": 264,
+    "badsha1_2": 265,
     "pubkeys": 266,
-    "signature": 267,
+    "signature": 267, #dsaheader in C code
     "rsaheader": 268,
-    "md5": 269,
+    "md5": 269,  #sha1header in C code
     "longsigsize": 270,
     "longarchivesize": 271,
+    "sha256": 273,
+    "veritysignatures": 276,
+    "veritysignaturealgo": 277,
     "name": 1000,
     "version": 1001,
     "release": 1002,
@@ -307,9 +342,23 @@ tags = {
     "autoinstalled": 5094,
     "identity": 5095,
     "modularitylabel": 5096,
+    "loaddigestalt": 5097,
+    "archsuffix": 5098,
+    "spec": 5099,
+    "translationurl": 5100,
+    "upstreamleases": 5101,
+    "sourcelicense": 5102,
+    "preuntrans": 5103,
+    "postuntrans": 5104,
+    "preuntransprog": 5105,
+    "postuntransprog": 5106,
+    "preuntransflags": 5107,
+    "postuntransflags": 5108,
+    "sysusers": 5109,
 }
 
 rtags = dict([(value, key) for (key, value) in tags.items()])
+rsigtags = dict([(value, key) for (key, value) in sigtags.items()])
 
 
 def extract_string(offset, count, store):
@@ -367,7 +416,7 @@ def extract_data(ty, offset, count, store):
         return "could not extract %s" % ty
 
 
-def _readheader(fileobj):
+def _readheader(fileobj, is_signature):
     char = fileobj.read(1)
     while char != b"\x8e":
         char = fileobj.read(1)
@@ -396,11 +445,11 @@ def _readheader(fileobj):
         entries.append(entry)
 
     store = fileobj.read(header_structure_size)
-    store
 
     headers = {}
+    tagsdict = rsigtags if is_signature else rtags
     for tag, ty, offset, count in entries:
-        key = rtags.get(tag, tag)
+        key = tagsdict.get(tag, tag)
         value = extract_data(ty, offset, count, store)
         headers[key] = value
     header_end = fileobj.tell()
@@ -412,9 +461,10 @@ def get_headers(fileobj):
     data = fileobj.read(lead.size)
     value = lead.unpack(data)
 
-    # Not sure what the first set of headers are for
-    first_range, first_headers = _readheader(fileobj)
-    second_range, second_headers = _readheader(fileobj)
+    #signature header
+    first_range, first_headers = _readheader(fileobj, True)
+    #main header
+    second_range, second_headers = _readheader(fileobj, False)
 
     first_headers.update(second_headers)
 
