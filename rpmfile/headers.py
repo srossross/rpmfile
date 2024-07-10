@@ -25,6 +25,7 @@ tags = {
     "md5": 269,
     "longsigsize": 270,
     "longarchivesize": 271,
+    "sha256": 273,
     "name": 1000,
     "version": 1001,
     "release": 1002,
@@ -307,6 +308,19 @@ tags = {
     "autoinstalled": 5094,
     "identity": 5095,
     "modularitylabel": 5096,
+    "payloaddigestalt": 5097,
+    "archsuffix": 5098,
+    "spec": 5099,
+    "translationurl": 5100,
+    "upstreamreleases": 5101,
+    "sourcelicense": 5102,
+    "preuntrans": 5103,
+    "postuntrans": 5104,
+    "preuntransprog": 5105,
+    "postuntransprog": 5106,
+    "preuntransflags": 5107,
+    "postuntransflags": 5108,
+    "sysusers": 5109,
 }
 
 rtags = dict([(value, key) for (key, value) in tags.items()])
