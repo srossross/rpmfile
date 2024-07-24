@@ -33,6 +33,9 @@ sigtags = {
     "filesignaturelength": 275,
     "veritysignatures": 276,
     "veritysignaturealgo": 277,
+}
+
+tags = {
     "headerimage": 61,
     "headersignatures": 62,
     "headerimmutable": 63,
