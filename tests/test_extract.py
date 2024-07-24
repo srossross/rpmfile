@@ -3,6 +3,7 @@ import sys
 import gzip
 import shutil
 import hashlib
+import stat
 import tempfile
 import unittest
 from functools import wraps
@@ -138,3 +139,25 @@ class TempDirTest(unittest.TestCase):
     def test_issue_19(self, rpmpath):
         with rpmfile.open(rpmpath) as rpm:
             self.assertEqual(len(list(rpm.getmembers())), 2)
+
+    @download(
+        "https://github.com/srossross/rpmfile/files/14625568/hello-2.12.1-2.fc39.x86_64.rpm.gz",
+        "hello.rpm",
+    )
+    def test_unsigned_ints(self, rpmpath):
+        with rpmfile.open(rpmpath) as rpm:
+            self.assertEqual(1689811200, rpm.headers["filemtimes"][0])
+            mode = rpm.headers["filemodes"][0]
+            st_type = stat.S_IFMT(mode)
+            st_mode = stat.S_IMODE(mode)
+            self.assertTrue(stat.S_ISREG(st_type))
+            self.assertEqual(
+                stat.S_IRUSR
+                | stat.S_IWUSR
+                | stat.S_IXUSR
+                | stat.S_IRGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IXOTH,
+                st_mode,
+            )
