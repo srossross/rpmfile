@@ -204,11 +204,13 @@ class RPMFile(object):
         if self._data_file is None:
             fileobj = _SubFile(self._fileobj, self.data_offset)
 
-            if self.headers["archive_compression"] == b"xz":
+            archive_compression = self.headers.get("archive_compression", b"")
+
+            if archive_compression == b"xz":
                 if not getattr(sys.modules[__name__], "lzma", False):
                     raise NoLZMAModuleError("lzma module not present")
                 self._data_file = lzma.LZMAFile(fileobj)
-            elif self.headers["archive_compression"] == b"zstd":
+            elif archive_compression == b"zstd":
                 if not getattr(sys.modules[__name__], "zstandard", False):
                     raise NoZSTANDARDModuleError("zstandard module not present")
                 if not (sys.version_info.major >= 3 and sys.version_info.minor >= 5):
@@ -216,7 +218,7 @@ class RPMFile(object):
                 with zstandard.ZstdDecompressor().stream_reader(fileobj) as zstd_data:
                     self._data_file = io.BytesIO(zstd_data.read())
 
-            elif self.headers["archive_compression"] == b"bzip2":
+            elif archive_compression == b"bzip2":
                 self._data_file = bz2.BZ2File(fileobj)
             else:
                 self._data_file = gzip.GzipFile(fileobj=fileobj)
