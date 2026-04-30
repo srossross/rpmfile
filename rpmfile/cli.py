@@ -139,10 +139,10 @@ def main(*argv):
                     else:
                         outfile = open(target, "wb")
                         try:
+                            os.fchmod(outfile.fileno(), rpmfileobj.mode)
                             shutil.copyfileobj(rpmfileobj, outfile)
                         finally:
                             outfile.close()
-                            os.chmod(target, rpmfileobj.mode)
                     if args.verbose:
                         print(target)
                     output["extracted"].append(rpminfo.name.split("/"))

@@ -28,7 +28,7 @@ class _SubFile(object):
     object.
     """
 
-    def __init__(self, fileobj, start=0, size=None, mode=None):
+    def __init__(self, fileobj, start=0, size=None, mode="r"):
         self._fileobj = fileobj
         self._start = start
         if size is None:

@@ -100,7 +100,7 @@ class RPMInfo(object):
             initial_offset,
             isdir,
             issymlink,
-            mode & int("777", 8)
+            mode & 0o777,
         )
 
 
