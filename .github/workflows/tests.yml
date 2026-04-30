@@ -26,9 +26,9 @@ jobs:
         pip install -U pip zstandard setuptools wheel build
     - name: Test
       run: |
-        python setup.py test
+        python -m unittest discover -v tests/
     - name: Style
-      if: ${{ matrix.python-version == '3.7' }}
+      if: ${{ matrix.python-version == '3.14' }}
       run: |
         pip install -U black==23.1.0
         black -t py37 --check .

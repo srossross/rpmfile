@@ -58,7 +58,7 @@ class TempDirTest(unittest.TestCase):
         sys.version_info.major >= 3 and sys.version_info.minor >= 3, "Need lzma module"
     )
     @download(
-        "https://download.clearlinux.org/releases/10540/clear/x86_64/os/Packages/sudo-setuid-1.8.17p1-34.x86_64.rpm",
+        "https://kojipkgs.fedoraproject.org/packages/sudo/1.9.17/7.p2.fc44/x86_64/sudo-1.9.17-7.p2.fc44.x86_64.rpm",
         "sudo.rpm",
     )
     def test_lzma_sudo(self, rpmpath):
@@ -68,11 +68,11 @@ class TempDirTest(unittest.TestCase):
             self.assertEqual(rpm.headers.get("arch", "noarch"), b"x86_64")
 
             members = list(rpm.getmembers())
-            self.assertEqual(len(members), 1)
+            self.assertEqual(len(members), 145)
 
             with rpm.extractfile("./usr/bin/sudo") as fd:
                 calculated = hashlib.md5(fd.read()).hexdigest()
-                self.assertEqual(calculated, "a208f3d9170ecfa69a0f4ccc78d2f8f6")
+                self.assertEqual("719cce76e0061b4fc4778423a25ee739", calculated)
 
     @unittest.skipUnless(
         sys.version_info.major >= 3 and sys.version_info.minor >= 5, "Need io.BytesIO"
