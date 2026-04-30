@@ -1,7 +1,6 @@
 # rpmfile
 
-[![Build Status](https://travis-ci.org/srossross/rpmfile.svg?branch=master)](https://travis-ci.org/srossross/rpmfile)
-[![Actions Status](https://github.com/srossross/rpmfile/workflows/Tests/badge.svg?branch=master&event=push)](https://github.com/srossross/rpmfile/actions)
+[![Tests](https://github.com/srossross/rpmfile/actions/workflows/tests.yml/badge.svg?event=push)](https://github.com/srossross/rpmfile/actions/workflows/tests.yml)
 [![PyPI version](https://img.shields.io/pypi/v/rpmfile.svg)](https://pypi.org/project/rpmfile)
 
 Tools for inspecting RPM files in python. This module is modeled after the
