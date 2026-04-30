@@ -1,12 +1,15 @@
 import os
+import sys
 import shutil
 import tempfile
+import pathlib
 import time
 import unittest
 
 from rpmfile.cli import main
 
-from .test_extract import download
+sys.path.append(str(pathlib.Path(__file__).parent.resolve()))
+from test_extract import download
 
 
 class TempCLI(unittest.TestCase):
