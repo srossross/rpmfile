@@ -134,11 +134,14 @@ def main(*argv):
                     target = os.path.realpath(os.path.join(dest, *(dirs + [filename])))
                     if not target.startswith(dest):
                         raise ValueError("Attempted path traversal: " + target)
-                    outfile = open(target, "wb")
-                    try:
-                        shutil.copyfileobj(rpmfileobj, outfile)
-                    finally:
-                        outfile.close()
+                    if rpminfo.issymlink:
+                        os.symlink(rpmfileobj.read().decode(), target)
+                    else:
+                        outfile = open(target, "wb")
+                        try:
+                            shutil.copyfileobj(rpmfileobj, outfile)
+                        finally:
+                            outfile.close()
                     if args.verbose:
                         print(target)
                     output["extracted"].append(rpminfo.name.split("/"))
