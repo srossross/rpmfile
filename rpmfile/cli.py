@@ -4,6 +4,8 @@ from datetime import datetime
 import os
 import io
 import sys
+import shutil
+import tempfile
 import argparse
 
 import rpmfile
@@ -22,6 +24,13 @@ def main(*argv):
         dest="extract",
         action="store_true",
         help="Extract the input RPM",
+    )
+    parser.add_argument(
+        "--max-spool",
+        dest="max_spool",
+        type=int,
+        help="Max GB for spool file if reading from stdin",
+        default=10,
     )
     parser.add_argument(
         "-C",
@@ -61,9 +70,12 @@ def main(*argv):
     else:
         args.infile = open(args.infile, "rb")
 
-    # NOTE Not sure why but piping to rpmfile doesn't work unless we read
-    # everything first into a buffer. Probably because of seek().
-    buf = io.BytesIO(args.infile.read())
+    if args.infile == sys.stdin or args.infile == sys.stdin.buffer:
+        buf = tempfile.SpooledTemporaryFile(max_size=args.max_spool * 1024 * 1024)
+        shutil.copyfileobj(args.infile, buf)
+        buf.seek(0)
+    else:
+        buf = args.infile
 
     output = {}
 
@@ -105,7 +117,7 @@ def main(*argv):
                 output["info"] += line + "\n"
     elif args.extract:
         output["extracted"] = []
-        dest = os.path.abspath(args.dest)
+        dest = os.path.abspath(args.dest) + os.sep
         if not os.path.isdir(dest):
             raise FileNotFoundError(dest + " is not a directory")
         with rpmfile.open(fileobj=buf) as rpm:
@@ -114,22 +126,23 @@ def main(*argv):
                     dirs = rpminfo.name.split("/")
                     filename = dirs.pop()
                     if dirs:
-                        dirs_path = os.path.abspath(os.path.join(dest, *dirs))
+                        dirs_path = os.path.realpath(os.path.join(dest, *dirs))
                         if not dirs_path.startswith(dest):
-                            raise ValueError("Attempted path traveral: " + dirs_path)
+                            raise ValueError("Attempted path traversal: " + dirs_path)
                         if not os.path.isdir(dirs_path):
                             os.makedirs(dirs_path)
-                    target = os.path.abspath(os.path.join(dest, *(dirs + [filename])))
+                    target = os.path.realpath(os.path.join(dest, *(dirs + [filename])))
                     if not target.startswith(dest):
-                        raise ValueError("Attempted path traveral: " + target)
+                        raise ValueError("Attempted path traversal: " + target)
                     outfile = open(target, "wb")
                     try:
-                        outfile.write(rpmfileobj.read())
+                        shutil.copyfileobj(rpmfileobj, outfile)
                     finally:
                         outfile.close()
                     if args.verbose:
                         print(target)
                     output["extracted"].append(rpminfo.name.split("/"))
+
     else:
         raise Exception("Nothing to do")
 
