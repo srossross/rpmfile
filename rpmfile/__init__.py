@@ -44,7 +44,9 @@ class RPMInfo(object):
 
     _new_coder = struct.Struct(b"8s8s8s8s8s8s8s8s8s8s8s8s8s")
 
-    def __init__(self, name, file_start, file_size, initial_offset, isdir, issymlink, mode):
+    def __init__(
+        self, name, file_start, file_size, initial_offset, isdir, issymlink, mode
+    ):
         self.name = name
         self.file_start = file_start
         self.size = file_size

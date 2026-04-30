@@ -6,6 +6,7 @@ rpm definitions
 
 Mario Morgado (BSD) https://github.com/mjvm/pyrpm
 """
+
 __revision__ = "$Rev$"[6:-2]
 
 RPM_LEAD_MAGIC_NUMBER = "\xed\xab\xee\xdb"

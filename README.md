@@ -104,7 +104,7 @@ The [black](https://github.com/psf/black) formater should be used on all files
 before submitting a contribution. Version 19.10b0.
 
 ```console
-$ pip install black==19.10b0
+$ pip install black==26.3.1
 $ black .
 ```
 
