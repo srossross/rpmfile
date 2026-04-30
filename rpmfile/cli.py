@@ -139,6 +139,7 @@ def main(*argv):
                     else:
                         outfile = open(target, "wb")
                         try:
+                            os.fchmod(outfile.fileno(), rpmfileobj.mode)
                             shutil.copyfileobj(rpmfileobj, outfile)
                         finally:
                             outfile.close()

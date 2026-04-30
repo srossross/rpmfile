@@ -30,7 +30,7 @@ jobs:
     - name: Style
       if: ${{ matrix.python-version == '3.14' }}
       run: |
-        pip install -U black==23.1.0
+        pip install -U black==26.3.1
         black -t py37 --check .
     - name: Package
       run: |

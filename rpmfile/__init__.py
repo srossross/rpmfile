@@ -44,13 +44,16 @@ class RPMInfo(object):
 
     _new_coder = struct.Struct(b"8s8s8s8s8s8s8s8s8s8s8s8s8s")
 
-    def __init__(self, name, file_start, file_size, initial_offset, isdir, issymlink):
+    def __init__(
+        self, name, file_start, file_size, initial_offset, isdir, issymlink, mode
+    ):
         self.name = name
         self.file_start = file_start
         self.size = file_size
         self.initial_offset = initial_offset
         self._isdir = isdir
         self._issymlink = issymlink
+        self._mode = mode
 
     @property
     def isdir(self):
@@ -59,6 +62,10 @@ class RPMInfo(object):
     @property
     def issymlink(self):
         return self._issymlink
+
+    @property
+    def mode(self):
+        return self._mode
 
     def __repr__(self):
         return "<RPMMember %r>" % self.name
@@ -88,7 +95,15 @@ class RPMInfo(object):
         mode = int(d[1], 16)
         isdir = mode & int("0040000", 8)
         issymlink = (mode & 0o120000) == 0o120000
-        return cls(name, file_start, file_size, initial_offset, isdir, issymlink)
+        return cls(
+            name,
+            file_start,
+            file_size,
+            initial_offset,
+            isdir,
+            issymlink,
+            mode & 0o777,
+        )
 
 
 class RPMFile(object):
@@ -178,7 +193,7 @@ class RPMFile(object):
         """
         if not isinstance(member, RPMInfo):
             member = self.getmember(member)
-        return _SubFile(self.data_file, member.file_start, member.size)
+        return _SubFile(self.data_file, member.file_start, member.size, member.mode)
 
     _data_file = None
 

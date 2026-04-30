@@ -3,6 +3,7 @@ Created on Jan 10, 2014
 
 @author: sean
 """
+
 from __future__ import print_function, unicode_literals, absolute_import
 import sys
 import struct
