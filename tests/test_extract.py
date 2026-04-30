@@ -24,14 +24,14 @@ import rpmfile
 # ---------------------------------------------------------------------------
 
 try:
-    import lzma as _lzma  # noqa: F401 – stdlib since Python 3.3
+    import lzma as _lzma  # noqa: F401 - stdlib since Python 3.3
 
     _HAVE_LZMA = True
 except ImportError:
     _HAVE_LZMA = False
 
 try:
-    import zstandard as _zstandard  # noqa: F401 – optional third-party package
+    import zstandard as _zstandard  # noqa: F401 - optional third-party package
 
     _HAVE_ZSTD = True
 except ImportError:
@@ -293,7 +293,9 @@ class TestExtract(unittest.TestCase):
         )
 
         # --- gzip RPM ---------------------------------------------------------
-        # Used by test_autoclose and test_issue_19.
+        # Shared fixture for tests that only need a basic gzip-compressed RPM.
+        # Contains two files so that multi-value header fields (e.g. filemodes)
+        # are stored as arrays rather than scalars.
         write(
             "test-gzip.rpm",
             name="test-gzip",

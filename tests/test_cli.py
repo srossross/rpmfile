@@ -44,7 +44,8 @@ class TempCLI(unittest.TestCase):
         "License for gopacket-license\n"
     )
 
-    # AUTHORS (1668 B) + LICENSE (1555 B) = 3223 B, matching GOPACKET_LICENSE_INFO.
+    # AUTHORS (1668 B) + LICENSE (1555 B) = 3223 B total, which must match the
+    # "Size        : 3223" line expected in GOPACKET_LICENSE_INFO by test_info.
     _AUTHORS_CONTENT = b"A" * 1668
     _LICENSE_CONTENT = b"L" * 1555
 
