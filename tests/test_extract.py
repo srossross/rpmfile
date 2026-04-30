@@ -15,26 +15,41 @@ except ImportError:
 
 import rpmfile
 
+# Directory containing bundled RPM test fixtures.
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
 
 def download(url, rpmname):
+    """Decorator that provides an RPM file path to the test method.
+
+    Looks for *rpmname* inside the local ``tests/data/`` directory first so
+    that the test suite can run without a network connection when the sdist
+    ships with pre-built test data.  Falls back to downloading from *url*
+    when the file is not available locally.
+    """
+
     def _downloader(func):
         @wraps(func)
         def wrapper(*args, **kwds):
             args = list(args)
-            rpmpath = os.path.join(args[0].tempdir, rpmname)
-            gztemp = os.path.join(args[0].tempdir, "temp.gz")
+            local_file = os.path.join(DATA_DIR, rpmname)
+            if os.path.exists(local_file):
+                rpmpath = local_file
+            else:
+                rpmpath = os.path.join(args[0].tempdir, rpmname)
+                gztemp = os.path.join(args[0].tempdir, "temp.gz")
+                response = urlopen(url)
+                if url.endswith(".gz"):
+                    with open(gztemp, "wb") as gztemp_file:
+                        gztemp_file.write(response.read())
+                    response.close()
+                    response = gzip.open(gztemp, "rb")
+                with open(rpmpath, "wb") as target_file:
+                    target_file.write(response.read())
+                response.close()
+                if url.endswith(".gz"):
+                    os.unlink(gztemp)
             args.append(rpmpath)
-            download = urlopen(url)
-            if url[::-1].startswith(".gz"[::-1]):
-                with open(gztemp, "wb") as gztemp_file:
-                    gztemp_file.write(download.read())
-                download.close()
-                download = gzip.open(gztemp, "rb")
-            with open(rpmpath, "wb") as target_file:
-                target_file.write(download.read())
-            download.close()
-            if url[::-1].startswith(".gz"[::-1]):
-                os.unlink(gztemp)
             return func(*args, **kwds)
 
         return wrapper
@@ -42,46 +57,31 @@ def download(url, rpmname):
     return _downloader
 
 
-class TempDirTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.prevdir = os.getcwd()
-        cls.tempdir = tempfile.mkdtemp()
-        os.chdir(cls.tempdir)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tempdir)
-        os.chdir(cls.prevdir)
-
+class TestExtract(unittest.TestCase):
     @unittest.skipUnless(
         sys.version_info.major >= 3 and sys.version_info.minor >= 3, "Need lzma module"
     )
-    @download(
-        "https://kojipkgs.fedoraproject.org/packages/sudo/1.9.17/7.p2.fc44/x86_64/sudo-1.9.17-7.p2.fc44.x86_64.rpm",
-        "sudo.rpm",
-    )
-    def test_lzma_sudo(self, rpmpath):
+    def test_lzma(self):
+        """Test that xz/lzma-compressed RPMs can be read and extracted."""
+        rpmpath = os.path.join(DATA_DIR, "test-rpm-xz.noarch.rpm")
         with rpmfile.open(rpmpath) as rpm:
             # Inspect the RPM headers
             self.assertIn("name", rpm.headers.keys())
-            self.assertEqual(rpm.headers.get("arch", "noarch"), b"x86_64")
+            self.assertEqual(rpm.headers.get("arch", "noarch"), b"noarch")
 
             members = list(rpm.getmembers())
-            self.assertEqual(len(members), 145)
+            self.assertEqual(len(members), 2)
 
-            with rpm.extractfile("./usr/bin/sudo") as fd:
+            with rpm.extractfile("./usr/share/test-package/hello.txt") as fd:
                 calculated = hashlib.md5(fd.read()).hexdigest()
-                self.assertEqual("719cce76e0061b4fc4778423a25ee739", calculated)
+                self.assertEqual("bea8252ff4e80f41719ea13cdf007273", calculated)
 
     @unittest.skipUnless(
         sys.version_info.major >= 3 and sys.version_info.minor >= 5, "Need io.BytesIO"
     )
-    @download(
-        "https://github.com/srossross/rpmfile/files/4505148/xmlstarlet-1.6.1-14.fc32.x86_64.txt",
-        "xmlstarlet.rpm",
-    )
-    def test_zstd_xmlstarlet(self, rpmpath):
+    def test_zstd_xmlstarlet(self):
+        """Test that zstd-compressed RPMs can be read and extracted."""
+        rpmpath = os.path.join(DATA_DIR, "xmlstarlet.rpm")
         with rpmfile.open(rpmpath) as rpm:
             # Inspect the RPM headers
             self.assertIn("name", rpm.headers.keys())
@@ -98,12 +98,9 @@ class TempDirTest(unittest.TestCase):
                 calculated = hashlib.md5(fd.read()).hexdigest()
                 self.assertEqual(calculated, "68b329da9893e34099c7d8ad5cb9c940")
 
-    @download(
-        "https://github.com/srossross/rpmfile/files/5561331/rpm-4.15.0-6.fc31.src.rpm.txt",
-        "sample.rpm",
-    )
-    def test_autoclose(self, rpmpath):
-        """Test that RPMFile.open context manager properly closes rpm file"""
+    def test_autoclose(self):
+        """Test that RPMFile.open context manager properly closes rpm file."""
+        rpmpath = os.path.join(DATA_DIR, "gopacket.rpm")
 
         rpm_ref = None
         with rpmfile.open(rpmpath) as rpm:
@@ -111,40 +108,36 @@ class TempDirTest(unittest.TestCase):
 
             # Inspect the RPM headers
             self.assertIn("name", rpm.headers.keys())
-            self.assertEqual(rpm.headers.get("arch", "noarch"), b"armv7hl")
+            self.assertEqual(rpm.headers.get("arch", "noarch"), b"noarch")
 
             members = list(rpm.getmembers())
-            self.assertEqual(len(members), 12)
+            self.assertEqual(len(members), 2)
 
             # Test that subfile does not close parent file by calling close and
             # then extractfile again
-            fd = rpm.extractfile("rpm-4.15.x-ldflags.patch")
+            fd = rpm.extractfile("./usr/share/doc/gopacket-license/AUTHORS")
             calculated = hashlib.md5(fd.read()).hexdigest()
-            self.assertEqual(calculated, "65224837f744ab699d0c8762147b2a6b")
+            self.assertEqual(calculated, "3cfb2ca4a1dbc26b71e869ef66434705")
             fd.close()
 
-            fd = rpm.extractfile("rpm.spec")
+            fd = rpm.extractfile("./usr/share/doc/gopacket-license/LICENSE")
             calculated = hashlib.md5(fd.read()).hexdigest()
-            self.assertEqual(calculated, "e59ea2cc856d3cc83538b00833f4d7b8")
+            self.assertEqual(calculated, "b32b347fe7ed4541e05033e8b0b29001")
             fd.close()
 
         # Test that RPMFile owned file descriptor and that underlying file is really closed
         self.assertTrue(rpm_ref._fileobj.closed)
         self.assertTrue(rpm_ref._ownes_fd)
 
-    @download(
-        "https://github.com/srossross/rpmfile/files/3150016/gopacket-license.noarch.rpm.gz",
-        "gopacket.rpm",
-    )
-    def test_issue_19(self, rpmpath):
+    def test_issue_19(self):
+        """Regression test for issue #19 (member count)."""
+        rpmpath = os.path.join(DATA_DIR, "gopacket.rpm")
         with rpmfile.open(rpmpath) as rpm:
             self.assertEqual(len(list(rpm.getmembers())), 2)
 
-    @download(
-        "https://github.com/srossross/rpmfile/files/14625568/hello-2.12.1-2.fc39.x86_64.rpm.gz",
-        "hello.rpm",
-    )
-    def test_unsigned_ints(self, rpmpath):
+    def test_unsigned_ints(self):
+        """Test that unsigned-integer header fields are parsed correctly."""
+        rpmpath = os.path.join(DATA_DIR, "hello.rpm")
         with rpmfile.open(rpmpath) as rpm:
             self.assertEqual(1689811200, rpm.headers["filemtimes"][0])
             mode = rpm.headers["filemodes"][0]
