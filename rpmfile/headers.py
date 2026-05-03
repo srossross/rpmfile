@@ -374,7 +374,7 @@ def extract_string(offset, count, store):
     end = offset + idx
     if len(store) < end:
         raise RPMError("out of range")
-    return store[offset : offset + idx]
+    return store[offset:end]
 
 
 def extract_i18nstring(offset, count, store):
@@ -392,7 +392,7 @@ def extract_bin(offset, count, store):
     end = offset + count
     if len(store) < end:
         raise RPMError("out of range")
-    return store[offset : offset + count]
+    return store[offset:end]
 
 
 def extract_int32(offset, count, store):
