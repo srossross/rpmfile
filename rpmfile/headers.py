@@ -90,7 +90,7 @@ tags = {
     "postin": 1024,
     "preun": 1025,
     "postun": 1026,
-    "oldfilenames": 1027, # https://rpm.org/docs/4.19.x/manual/tags.html
+    "oldfilenames": 1027,  # https://rpm.org/docs/4.19.x/manual/tags.html
     "filesizes": 1028,
     "filestates": 1029,
     "filemodes": 1030,
@@ -399,7 +399,7 @@ def extract_int32(offset, count, store):
     end = offset + 4 * count
     if len(store) < end:
         raise RPMError("out of range")
-    values = struct.unpack(b"!" + b"I" * count, store[offset: end])
+    values = struct.unpack(b"!" + b"I" * count, store[offset:end])
     if count == 1:
         values = values[0]
     return values
@@ -409,7 +409,7 @@ def extract_int16(offset, count, store):
     end = offset + 2 * count
     if len(store) < end:
         raise RPMError("out of range")
-    values = struct.unpack(b"!" + b"H" * count, store[offset: end])
+    values = struct.unpack(b"!" + b"H" * count, store[offset:end])
     if count == 1:
         values = values[0]
     return values
