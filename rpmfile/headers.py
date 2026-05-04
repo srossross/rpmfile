@@ -5,9 +5,11 @@ Created on Jan 10, 2014
 """
 
 from __future__ import print_function, unicode_literals, absolute_import
-import sys
+
 import struct
+import sys
 from pprint import pprint
+
 from .errors import RPMError
 
 sigtags = {
@@ -88,7 +90,7 @@ tags = {
     "postin": 1024,
     "preun": 1025,
     "postun": 1026,
-    "filenames": 1027,
+    "oldfilenames": 1027,  # https://rpm.org/docs/4.19.x/manual/tags.html
     "filesizes": 1028,
     "filestates": 1029,
     "filemodes": 1030,
@@ -349,9 +351,6 @@ tags = {
     "translationurl": 5100,
     "upstreamreleases": 5101,
     "loaddigestalt": 5097,
-    "archsuffix": 5098,
-    "spec": 5099,
-    "translationurl": 5100,
     "upstreamleases": 5101,
     "sourcelicense": 5102,
     "preuntrans": 5103,
@@ -372,7 +371,10 @@ def extract_string(offset, count, store):
         return extract_array(offset, count, store)
     assert count == 1
     idx = store[offset:].index(b"\x00")
-    return store[offset : offset + idx]
+    end = offset + idx
+    if len(store) < end:
+        raise RPMError("out of range")
+    return store[offset:end]
 
 
 def extract_i18nstring(offset, count, store):
@@ -387,18 +389,27 @@ def extract_array(offset, count, store):
 
 
 def extract_bin(offset, count, store):
-    return store[offset : offset + count]
+    end = offset + count
+    if len(store) < end:
+        raise RPMError("out of range")
+    return store[offset:end]
 
 
 def extract_int32(offset, count, store):
-    values = struct.unpack(b"!" + b"I" * count, store[offset : offset + 4 * count])
+    end = offset + 4 * count
+    if len(store) < end:
+        raise RPMError("out of range")
+    values = struct.unpack(b"!" + b"I" * count, store[offset:end])
     if count == 1:
         values = values[0]
     return values
 
 
 def extract_int16(offset, count, store):
-    values = struct.unpack(b"!" + b"H" * count, store[offset : offset + 2 * count])
+    end = offset + 2 * count
+    if len(store) < end:
+        raise RPMError("out of range")
+    values = struct.unpack(b"!" + b"H" * count, store[offset:end])
     if count == 1:
         values = values[0]
     return values
@@ -456,6 +467,8 @@ def _readheader(fileobj, is_signature):
     tagsdict = rsigtags if is_signature else rtags
     for tag, ty, offset, count in entries:
         key = tagsdict.get(tag, tag)
+        if not 0 <= offset < len(store):
+            raise RPMError("offset overhead")
         value = extract_data(ty, offset, count, store)
         headers[key] = value
     header_end = fileobj.tell()
