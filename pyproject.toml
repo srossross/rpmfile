@@ -1,17 +1,58 @@
 [build-system]
-requires = ["setuptools>=77.0.3", "setuptools-scm[toml]>=10.0", "vcs-versioning>=1.0.0", "wheel>=0.47.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
+[project]
+name = "rpmfile"
+description = "Read rpm archive files"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Sean Ross-Ross", email = "srossross@gmail.com" }]
+requires-python = ">=3.10"
+dynamic = ["version"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/srossross/rpmfile"
+Repository = "https://github.com/srossross/rpmfile"
+
+[project.optional-dependencies]
+zstd = ["zstandard>=0.13.0"]
+
+[project.scripts]
+rpmfile = "rpmfile.cli:console_script_entry_point"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "rpmfile/_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["rpmfile", "README.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["rpmfile"]
 
 [tool.black]
-target-version = ['py27']
+target-version = ["py310"]
 
 exclude = '''
 (
   /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
+      \.eggs
+    | \.git
     | \.hg
     | \.mypy_cache
     | \.tox

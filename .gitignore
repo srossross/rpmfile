@@ -1,3 +1,7 @@
 *.pyc
 *.pyor
 *.egg-info/
+rpmfile/_version.py
+build/
+dist/
+
