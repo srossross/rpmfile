@@ -30,6 +30,9 @@ Repository = "https://github.com/srossross/rpmfile"
 [project.optional-dependencies]
 zstd = ["zstandard>=0.13.0"]
 
+[dependency-groups]
+dev = ["black==26.3.1"]
+
 [project.scripts]
 rpmfile = "rpmfile.cli:console_script_entry_point"
 
@@ -47,20 +50,4 @@ packages = ["rpmfile"]
 
 [tool.black]
 target-version = ["py310"]
-
-exclude = '''
-(
-  /(
-      \.eggs
-    | \.git
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )
-)
-'''
+force-exclude = "rpmfile/_version.py"
