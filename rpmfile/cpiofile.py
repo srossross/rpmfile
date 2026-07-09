@@ -36,6 +36,7 @@ import io
 import mmap
 import os
 import struct
+from struct import Struct
 
 
 class CpioError(Exception):
@@ -87,7 +88,7 @@ class StructBase(object):
 
     __metaclass__ = abc.ABCMeta
 
-    coder = None
+    coder: None | Struct = None
     """
     The :py:class:`struct.Struct` used to encode/decode this object
     into a block of memory.  This is expected to be overridden by
@@ -136,7 +137,7 @@ class StructBase(object):
         """
         raise NotImplementedError
 
-    __hash__ = None
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other):
         raise NotImplementedError
@@ -157,7 +158,7 @@ class StructBase(object):
 class CpioFile(StructBase):
     """Class representing an entire cpio file"""
 
-    _members = []
+    _members: list["CpioMember"] = []
 
     def __init__(self):
         self._members = []
@@ -239,11 +240,14 @@ class CpioFile(StructBase):
     def unpack_from(self, block, offset=0):
         pointer = offset
         print("unpack_from")
-        while "TRAILER!!!" not in self.names:
+        while pointer < len(block):
             cmem = CpioMember.encoded_class(block, pointer)()
             print(type(cmem))
-            self.members.append(cmem.unpack_from(block, pointer))
+            _member = cmem.unpack_from(block, pointer)
+            self.members.append(_member)
             pointer += cmem.size
+            if _member.name in ("TRAILER!!!", b"TRAILER!!!"):
+                break
 
         del self.members[-1]
 
@@ -274,7 +278,7 @@ class CpioFile(StructBase):
 class CpioMember(StructBase):
     """class representing a member of a cpio archive"""
 
-    coder = None
+    coder: None | Struct = None
 
     name = None
     magic = None
@@ -405,26 +409,26 @@ class CpioMember(StructBase):
 
     def __repr__(self):
         return (
-            b"<{0}@{1}: coder={2}, name='{3}', magic='{4}'"
-            + ", devmajor={5}, devminor={6}, ino={7}, mode={8}"
-            + ", uid={9}, gid={10}, nlink={11}, rdevmajor={12}"
-            + ", rdevmino={13}, mtime={14}, filesize={15}>".format(
-                self.__class__.__name__,
-                hex(id(self)),
-                self.coder,
-                self.name,
-                self.magic,
-                self.devmajor,
-                self.devminor,
-                self.ino,
-                self.mode,
-                self.uid,
-                self.gid,
-                self.nlink,
-                self.rdevmajor,
-                self.rdevminor,
-                self.mtime,
-                self.filesize,
+            "<{0}@{1}: coder={2}, name='{3}', magic='{4}'"
+            ", devmajor={5}, devminor={6}, ino={7}, mode={8}"
+            ", uid={9}, gid={10}, nlink={11}, rdevmajor={12}"
+            ", rdevmino={13}, mtime={14}, filesize={15}>".format(
+                self.__class__.__name__,  # 0
+                hex(id(self)),  # 1
+                self.coder,  # 2
+                self.name,  # 3
+                self.magic,  # 4
+                self.devmajor,  # 5
+                self.devminor,  # 6
+                self.ino,  # 7
+                self.mode,  # 8
+                self.uid,  # 9
+                self.gid,  # 10
+                self.nlink,  # 11
+                self.rdevmajor,  # 12
+                self.rdevminor,  # 13
+                self.mtime,  # 14
+                self.filesize,  # 15
             )
         )
 
